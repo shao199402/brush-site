@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="hero-card" aria-label="商品图片">
-        <img src="https://cdn.shopify.com/s/files/1/0399/3498/4354/products/HA1282_600_1024x1024.jpg?v=1750174654" alt="F6141 扇毛短 扇形" />
+        <img src="assets/products/hd1093-1.jpg" alt="F6141 扇毛短 扇形" />
         <div class="vertical-note">笔，是成就表达的工具</div>
       </div>
     </section>
@@ -53,8 +53,8 @@
 
     <section class="product-section" id="product">
       <div class="product-gallery">
-        <img class="main-product" src="https://cdn.shopify.com/s/files/1/0399/3498/4354/products/HA1282_600_1024x1024.jpg?v=1750174654" alt="F6141 扇毛短 扇形 主图" />
-        <img class="side-product" src="https://cdn.shopify.com/s/files/1/0399/3498/4354/products/H4874_600_1_8b550687-1bf6-4b1f-b844-e6e077057594_1024x1024.jpg?v=1750174655" alt="F6141 扇毛短 扇形 细节图" />
+        <img class="main-product" src="assets/products/hd1093-1.jpg" alt="F6141 扇毛短 扇形 主图" />
+        <img class="side-product" src="assets/products/hd1093-1.jpg" alt="F6141 扇毛短 扇形 细节图" />
       </div>
       <div class="product-info">
         <p class="eyebrow">HAKUHO-DO / 化妆笔</p>
@@ -69,7 +69,7 @@
           <div><span>尺寸</span><strong>全长 160mm / 毛长 20mm</strong></div>
           <div><span>SKU</span><strong>HD1093</strong></div>
         </div>
-        <a class="btn primary wide" href="https://hakuho-do.co.jp/products/hd1093" target="_blank" rel="noreferrer">查看官方商品</a>
+        <a class="btn primary wide" href="#catalog">查看全部商品</a>
       </div>
     </section>
 
@@ -97,6 +97,13 @@
       <div id="catalogGrid" class="catalog-grid"></div>
       <button id="loadMore" class="btn ghost load-more" type="button">加载更多</button>
     </section>
+
+    <div class="product-modal" id="productModal" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-label="商品详情">
+        <button class="modal-close" id="modalClose" type="button" aria-label="关闭商品详情">×</button>
+        <div id="modalBody" class="modal-body"></div>
+      </div>
+    </div>
 
     <section class="care-section" id="care">
       <div class="care-card">
