@@ -1,0 +1,35 @@
+﻿name: Sync Hakuho-do prices
+
+on:
+  schedule:
+    # 00:00 Asia/Shanghai = 16:00 UTC on the previous day.
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-hakuho-prices
+  cancel-in-progress: false
+
+jobs:
+  sync-prices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout site
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check and update prices
+        run: node scripts/sync-prices.js
+
+      - name: Commit price changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Update product prices from Hakuho-do'
+          file_pattern: 'catalog-data.js price-changes.json'
