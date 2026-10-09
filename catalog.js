@@ -56,7 +56,7 @@ function openProduct(index){
       <p class="catalog-type">${escapeHtml(product.type)}</p>
       <h2>${escapeHtml(product.title)}</h2>
       <p class="catalog-price modal-price">${escapeHtml(product.price)}</p>
-      <div class="modal-detail">${escapeHtml(product.detail || product.desc || '暂无中文详情。').split('\n').map(line=>`<p>${line}</p>`).join('')}</div>
+      <div class="modal-detail">${product.detailHtml || escapeHtml(product.detail || product.desc || '暂无中文详情。').split('\n').map(line=>`<p>${line}</p>`).join('')}</div>
     </div>`;
   els.modal.removeAttribute('hidden');
   document.body.classList.add('modal-open');

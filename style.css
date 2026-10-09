@@ -803,6 +803,39 @@ body.modal-open {
   white-space: normal;
 }
 
+.modal-detail table {
+  width: 100%;
+  margin: 22px 0;
+  border-collapse: collapse;
+  color: var(--ink);
+  background: var(--white);
+  font-size: 14px;
+}
+
+.modal-detail th,
+.modal-detail td {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.modal-detail th {
+  width: 34%;
+  color: var(--muted);
+  background: var(--paper-deep);
+  font-weight: 400;
+}
+
+.modal-detail p {
+  margin: 0 0 12px;
+}
+
+.modal-detail img {
+  max-width: 100%;
+  height: auto;
+}
+
 .modal-detail p {
   margin-bottom: 12px;
 }

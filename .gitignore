@@ -1,0 +1,11 @@
+# 依赖与构建产物
+node_modules/
+
+# 管线临时文件
+data/**/*.tmp
+*.tmp
+
+# 系统文件
+Thumbs.db
+desktop.ini
+.DS_Store
