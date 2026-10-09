@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>笔刷商品目录 | 静态展示页</title>
-  <meta name="description" content="多品牌笔刷商品静态目录展示页面" />
+  <title>笔刷商品目录 | 首页</title>
+  <meta name="description" content="多品牌笔刷商品静态目录首页" />
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
@@ -16,7 +16,6 @@
     <nav class="nav" aria-label="主导航">
       <a href="#links">顶部链接</a>
       <a href="#modules">产品模块</a>
-      <a href="#catalog">白凤堂商品</a>
       <a href="#ads">广告位</a>
     </nav>
   </header>
@@ -39,11 +38,11 @@
           <span class="section-kicker">PRODUCT MODULES</span>
           <h2>产品模块</h2>
         </div>
-        <p>这里预留 6 个产品模块位置。当前第一个模块为已整理的白凤堂商品目录，后续可继续添加晃祐堂或其他品牌/分类模块。</p>
+        <p>首页只作为产品模块入口，不直接展示具体商品。当前第一个模块为白凤堂商品，点击后进入独立商品页；后续可继续添加晃祐堂或其他品牌/分类模块。</p>
       </div>
 
       <div class="module-grid">
-        <a class="module-card active" href="#catalog" aria-label="进入白凤堂商品模块">
+        <a class="module-card active" href="./hakuho.html" aria-label="进入白凤堂商品页面">
           <span class="module-number">01</span>
           <div class="module-image">
             <img src="assets/products/hd1093-1.jpg" alt="白凤堂商品模块" />
@@ -51,7 +50,7 @@
           <div class="module-body">
             <p class="catalog-type">HAKUHO-DO</p>
             <h3>白凤堂商品</h3>
-            <p>已整理商品列表、详情、价格与本地图片，点击进入查看全部商品。</p>
+            <p>点击进入白凤堂独立商品页，查看商品列表、详情、价格与图片。</p>
           </div>
         </a>
 
@@ -107,30 +106,6 @@
       </div>
     </section>
 
-    <section class="catalog-section" id="catalog">
-      <div class="catalog-heading">
-        <div>
-          <span class="section-kicker">HAKUHO-DO PRODUCTS</span>
-          <h2>白凤堂商品</h2>
-        </div>
-        <p>已从白凤堂公开商品数据中整理商品名、价格、图片与简介，并以静态目录方式展示。可搜索商品名、用途、材质，也可按类型筛选。</p>
-      </div>
-      <div class="catalog-tools" aria-label="商品筛选工具">
-        <input id="catalogSearch" type="search" placeholder="搜索商品、用途、材质…" aria-label="搜索商品" />
-        <select id="catalogType" aria-label="按商品类型筛选"></select>
-        <span id="catalogCount" class="catalog-count">正在载入商品…</span>
-      </div>
-      <div id="catalogGrid" class="catalog-grid"></div>
-      <button id="loadMore" class="btn ghost load-more" type="button">加载更多</button>
-    </section>
-
-    <div class="product-modal" id="productModal" hidden>
-      <div class="modal-panel" role="dialog" aria-modal="true" aria-label="商品详情">
-        <button class="modal-close" id="modalClose" type="button" aria-label="关闭商品详情">×</button>
-        <div id="modalBody" class="modal-body"></div>
-      </div>
-    </div>
-
     <section class="ad-section" id="ads">
       <div class="ad-card">
         <span class="section-kicker">AD SPACE</span>
@@ -142,12 +117,10 @@
 
   <footer class="site-footer">
     <div>
-      <strong>笔刷商品目录展示页</strong>
-      <p>纯前端静态展示页面 · 多产品模块入口 · 无购物车逻辑</p>
+      <strong>笔刷商品目录首页</strong>
+      <p>纯前端静态首页 · 多产品模块入口 · 具体商品在独立页面展示</p>
     </div>
-    <p class="credit">当前白凤堂商品文字、图片与价格来自公开商品数据，仅用于页面参考展示。</p>
+    <p class="credit">当前白凤堂模块已接入独立商品页，其他模块预留中。</p>
   </footer>
-  <script src="./catalog-data.js"></script>
-  <script src="./catalog.js"></script>
 </body>
 </html>

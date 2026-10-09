@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>白凤堂商品 | 笔刷商品目录</title>
+  <meta name="description" content="白凤堂商品静态目录展示页面" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./index.html" aria-label="返回首页">
+      <span class="brand-mark">白凤堂商品</span>
+      <span class="brand-sub">HAKUHO-DO Catalog</span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="./index.html">首页</a>
+      <a href="#catalog">全部商品</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="catalog-hero">
+      <div>
+        <span class="section-kicker">HAKUHO-DO PRODUCTS</span>
+        <h1>白凤堂商品</h1>
+        <p class="lead">已从白凤堂公开商品数据中整理商品名、价格、图片与简介，并以静态目录方式展示。可搜索商品名、用途、材质，也可按类型筛选。</p>
+      </div>
+      <a class="btn ghost" href="./index.html">返回首页</a>
+    </section>
+
+    <section class="catalog-section catalog-page" id="catalog">
+      <div class="catalog-tools" aria-label="商品筛选工具">
+        <input id="catalogSearch" type="search" placeholder="搜索商品、用途、材质…" aria-label="搜索商品" />
+        <select id="catalogType" aria-label="按商品类型筛选"></select>
+        <span id="catalogCount" class="catalog-count">正在载入商品…</span>
+      </div>
+      <div id="catalogGrid" class="catalog-grid"></div>
+      <button id="loadMore" class="btn ghost load-more" type="button">加载更多</button>
+    </section>
+
+    <div class="product-modal" id="productModal" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-label="商品详情">
+        <button class="modal-close" id="modalClose" type="button" aria-label="关闭商品详情">×</button>
+        <div id="modalBody" class="modal-body"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <strong>白凤堂商品目录</strong>
+      <p>纯前端静态展示页面 · 商品列表 · 商品详情弹窗</p>
+    </div>
+    <p class="credit">商品文字、图片与价格来自公开商品数据，仅用于页面参考展示。</p>
+  </footer>
+  <script src="./catalog-data.js"></script>
+  <script src="./catalog.js"></script>
+</body>
+</html>
