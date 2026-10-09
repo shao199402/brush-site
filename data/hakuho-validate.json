@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-10-09T08:25:18.396Z",
+  "productCount": 1071,
+  "withDetailHtml": 1070,
+  "withoutImages": 0,
+  "emptyDescOrDetail": 2,
+  "kanaFields": 0,
+  "orphanImages": 0,
+  "errors": [],
+  "warnings": [
+    "naire：字段 desc 为空（官方可能本就没有描述）",
+    "naire：字段 detail 为空（官方可能本就没有描述）"
+  ],
+  "orphanImageSample": []
+}
