@@ -631,9 +631,15 @@ h2 {
   background: linear-gradient(135deg, #fffdf9, #eee7dc);
 }
 
+/* 商品图统一按「高度」约束，宽度随原图比例自适应。
+   之前用 aspect-ratio: 1/1 会把图片按**宽度**框成正方形，
+   而笔刷图往往是细长条（例如竹宝堂 63×395），contain 之后只剩 63×63，
+   白白浪费容器高度，看起来就"图片很小"。
+   现在固定高度 + object-fit: contain，细长图能撑满高度（约 28×185）。 */
 .catalog-image img {
+  display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: clamp(150px, 15vw, 190px);
   object-fit: contain;
   mix-blend-mode: multiply;
 }
