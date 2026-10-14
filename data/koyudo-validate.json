@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-10-14T05:44:33.607Z",
+  "productCount": 278,
+  "withDetailHtml": 260,
+  "withoutImages": 0,
+  "emptyDescOrDetail": 26,
+  "kanaFields": 0,
+  "orphanImages": 0,
+  "errors": [],
+  "warnings": [
+    "koyudo-000000000007：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000198：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000199：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000243：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000244：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000247：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000248：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000267：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000299：字段 detail 为空（官方可能本就没有描述）",
+    "koyudo-000000000343：字段 detail 为空（官方可能本就没有描述）"
+  ],
+  "orphanImageSample": []
+}

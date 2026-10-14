@@ -22,9 +22,28 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CATALOG_FILE = path.join(ROOT, 'catalog-data.js');
-const IMG_DIR = path.join(ROOT, 'assets', 'products');
-const REPORT_FILE = path.join(ROOT, 'data', 'hakuho-validate.json');
+
+// 品牌参数：默认白凤堂，保持既有行为完全不变。
+//   node scripts/hakuho-validate.js                   -> catalog-data.js / assets/products
+//   node scripts/hakuho-validate.js --brand=takeda     -> takeda-data.js  / assets/takeda
+const brandArg = (process.argv.find((a) => a.startsWith('--brand=')) || '').split('=')[1];
+const BRAND = String(brandArg || 'hakuho').toLowerCase();
+const BRANDS = {
+  hakuho: { catalog: 'catalog-data.js', imgDir: ['assets', 'products'], report: ['data', 'hakuho-validate.json'], label: '白凤堂' },
+  takeda: { catalog: 'takeda-data.js', imgDir: ['assets', 'takeda'], report: ['data', 'takeda-validate.json'], label: '竹田' },
+  n8: { catalog: 'n8-data.js', imgDir: ['assets', 'n8'], report: ['data', 'n8-validate.json'], label: '熊永堂' },
+  eihodo: { catalog: 'eihodo-data.js', imgDir: ['assets', 'eihodo'], report: ['data', 'eihodo-validate.json'], label: '永豊堂' },
+  koyudo: { catalog: 'koyudo-data.js', imgDir: ['assets', 'koyudo'], report: ['data', 'koyudo-validate.json'], label: '晃佑堂' },
+  chikuhodo: { catalog: 'chikuhodo-data.js', imgDir: ['assets', 'chikuhodo'], report: ['data', 'chikuhodo-validate.json'], label: '竹宝堂' },
+};
+if (!BRANDS[BRAND]) {
+  console.error('--brand 只支持 hakuho、takeda、n8、eihodo、koyudo 或 chikuhodo');
+  process.exit(1);
+}
+const CFG = BRANDS[BRAND];
+const CATALOG_FILE = path.join(ROOT, CFG.catalog);
+const IMG_DIR = path.join(ROOT, ...CFG.imgDir);
+const REPORT_FILE = path.join(ROOT, ...CFG.report);
 
 const STRICT_KANA = process.argv.includes('--strict-kana');
 // 只匹配真正的假名。排除 U+30FB「・」（片假名中点，属标点而非假名），
@@ -42,13 +61,13 @@ function countTag(html, name) {
 
 function main() {
   if (!fs.existsSync(CATALOG_FILE)) {
-    console.error('找不到 catalog-data.js');
+    console.error('找不到 ' + CFG.catalog);
     process.exit(1);
   }
   const raw = fs.readFileSync(CATALOG_FILE, 'utf8');
   const match = raw.match(/^\s*window\.PRODUCTS\s*=\s*([\s\S]*?);\s*$/);
   if (!match) {
-    console.error('catalog-data.js 格式无法识别（期望 window.PRODUCTS = [...];）');
+    console.error(CFG.catalog + ' 格式无法识别（期望 window.PRODUCTS = [...];）');
     process.exit(1);
   }
 
@@ -115,11 +134,17 @@ function main() {
 
     for (const field of ['title', 'desc', 'detail', 'detailHtml']) {
       let value = product ? String(product[field] || '') : '';
-      // HTML 注释对用户不可见，其中的内容不参与「残留日文」判定
-      if (field === 'detailHtml') value = value.replace(/<!--[\s\S]*?-->/g, '');
+      if (field === 'detailHtml') {
+        // 只判定「用户可见的文本」，两类不可见内容要排除：
+        //   1) HTML 注释（官方正文里确实存在被注释掉的废弃规格表与日文备注）
+        //   2) 标签**整段**，含其属性（如 alt="Premiumシリーズ"）
+        // 注意必须用 /<[^>]*>/ 整段剥离；若只剥尖括号，属性文字会漏出来被判成残留假名
+        // （实测因此把 8 件仅 alt 含假名的商品误报为残留）。
+        value = value.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]*>/g, ' ');
+      }
       if (KANA_RE.test(value)) {
         kanaCount += 1;
-        if (kanaCount <= 10) warnings.push(id + '.' + field + '：疑似残留日文 -> ' + value.slice(0, 50));
+        if (kanaCount <= 10) warnings.push(id + '.' + field + '：疑似残留日文 -> ' + value.replace(/\s+/g, ' ').trim().slice(0, 50));
       }
     }
 
@@ -140,7 +165,7 @@ function main() {
     orphans = fs
       .readdirSync(IMG_DIR)
       .filter((name) => /\.(jpe?g|png|webp)$/i.test(name))
-      .map((name) => 'assets/products/' + name)
+      .map((name) => CFG.imgDir.join('/') + '/' + name)
       .filter((rel) => !referencedImages.has(rel));
   } catch {
     warnings.push('无法读取 ' + path.relative(ROOT, IMG_DIR));
@@ -161,7 +186,7 @@ function main() {
   fs.mkdirSync(path.dirname(REPORT_FILE), { recursive: true });
   fs.writeFileSync(REPORT_FILE, JSON.stringify(report, null, 2) + '\n', 'utf8');
 
-  console.log('校验 catalog-data.js');
+  console.log('校验 ' + CFG.catalog + '（' + CFG.label + '）');
   console.log('  商品总数：' + products.length);
   console.log('  含 detailHtml：' + withDetailHtml + ' 条');
   console.log('  无图片：' + noImage + ' 条');

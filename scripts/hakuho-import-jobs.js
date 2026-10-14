@@ -3,26 +3,39 @@
 /**
  * 把外部翻译结果回灌进译文缓存。
  *
- * 用途：没有可用的翻译 API key 时，用 `hakuho-translate.js --export-jobs=N` 导出待翻译分片，
- *       由外部（人或代理）逐片翻译，再用本脚本合并回 data/hakuho-zh-cache.json，
- *       最后 `hakuho-translate.js --offline` 只读缓存完成拼装。
+ * 用途：没有可用的翻译 API key 时，用 `<brand>-translate.js --export-jobs=N` 导出待翻译分片，
+ *       由外部（人或代理）逐片翻译，再用本脚本合并回该品牌的译文缓存，
+ *       最后 `<brand>-translate.js --offline` 只读缓存完成拼装。
  *
- * 目录约定：
- *   data/translate/jobs/job-001.json   { id, count, segments: [{ k, ja }] }
- *   data/translate/out/job-001.json    { "1": "中文", "2": "中文", ... }   （也接受数组形式）
+ * 目录约定（--brand=takeda 时把 translate 换成 takeda-translate）：
+ *   data/<ns>/jobs/job-001.json   { id, count, segments: [{ k, ja }] }
+ *   data/<ns>/out/job-001.json    { "1": "中文", "2": "中文", ... }   （也接受数组形式）
  *
- * 用法：node scripts/hakuho-import-jobs.js
+ * 用法：
+ *   node scripts/hakuho-import-jobs.js                  # 白凤堂（默认）
+ *   node scripts/hakuho-import-jobs.js --brand=takeda   # 竹田
+ *   node scripts/hakuho-import-jobs.js --brand=n8       # 熊永堂 NUMBER EIGHT
+ *   node scripts/hakuho-import-jobs.js --brand=eihodo   # 永豊堂 Eihodo
+ *   node scripts/hakuho-import-jobs.js --brand=koyudo   # 晃佑堂 KOYUDO
  */
 
 const fs = require('fs');
 const path = require('path');
 
+const brandArg = (process.argv.slice(2).find((a) => a.startsWith('--brand=')) || '').split('=')[1];
+const BRAND = String(brandArg || 'hakuho').toLowerCase();
+if (!['hakuho', 'takeda', 'n8', 'eihodo', 'koyudo'].includes(BRAND)) {
+  console.error('--brand 只支持 hakuho、takeda、n8、eihodo 或 koyudo');
+  process.exit(1);
+}
+
 const ROOT = path.resolve(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');
-const JOBS_DIR = path.join(DATA_DIR, 'translate', 'jobs');
-const OUT_DIR = path.join(DATA_DIR, 'translate', 'out');
-const CACHE_FILE = path.join(DATA_DIR, 'hakuho-zh-cache.json');
-const REPORT_FILE = path.join(DATA_DIR, 'translate', 'import-report.json');
+const NS = BRAND === 'hakuho' ? 'translate' : BRAND + '-translate';
+const JOBS_DIR = path.join(DATA_DIR, NS, 'jobs');
+const OUT_DIR = path.join(DATA_DIR, NS, 'out');
+const CACHE_FILE = path.join(DATA_DIR, BRAND + '-zh-cache.json');
+const REPORT_FILE = path.join(DATA_DIR, NS, 'import-report.json');
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -30,7 +43,7 @@ function readJson(file) {
 
 function main() {
   if (!fs.existsSync(JOBS_DIR)) {
-    console.error('找不到 ' + path.relative(ROOT, JOBS_DIR) + '，请先运行：node scripts/hakuho-translate.js --export-jobs=200');
+    console.error('找不到 ' + path.relative(ROOT, JOBS_DIR) + '，请先运行：node scripts/' + BRAND + '-translate.js --export-jobs=200');
     process.exit(1);
   }
   fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -132,9 +145,9 @@ function main() {
 
   if (report.missing > 0) {
     console.log('\n还有 ' + report.missing + ' 段没有译文。补齐后重新运行本脚本，再执行：');
-    console.log('  node scripts/hakuho-translate.js --offline');
+    console.log('  node scripts/' + BRAND + '-translate.js --offline');
   } else {
-    console.log('\n全部段落就绪，下一步：node scripts/hakuho-translate.js --offline');
+    console.log('\n全部段落就绪，下一步：node scripts/' + BRAND + '-translate.js --offline');
   }
 }
 

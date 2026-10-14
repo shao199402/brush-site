@@ -246,17 +246,27 @@ h2 {
   color: var(--muted);
 }
 
+/* 产品模块区：纯文字模块卡（按需求去掉缩略图，只留中英文名称，居中放大）。
+   样式独立命名空间 .module-*，不影响商品页的 .catalog-card。 */
 .module-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  /* auto-fit 让小屏自动换列；grid-auto-rows: 1fr 让每行卡片等高 */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 22px;
 }
 
 .module-card {
   position: relative;
-  min-height: 360px;
-  display: grid;
-  grid-template-rows: 190px 1fr;
+  min-height: 236px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* 上下内边距必须对称，内容才真正在卡片里居中
+     （原先 42/34 不对称，实测内容中心偏低 25px） */
+  padding: 54px 30px;
+  text-align: center;
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--paper);
@@ -269,50 +279,59 @@ h2 {
   box-shadow: 0 18px 36px rgba(50, 42, 30, .08);
 }
 
+/* 编号：绝对定位到顶部正中，**脱离文档流**。
+   这样它不会把中文/英文挤偏——文字组才是唯一参与居中的内容。 */
 .module-number {
   position: absolute;
   top: 18px;
-  right: 18px;
-  z-index: 2;
-  color: rgba(23, 21, 19, .28);
-  font-family: Georgia, serif;
-  font-size: 32px;
-}
-
-.module-image,
-.module-empty {
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #fffdf9, #eee7dc);
-  border-bottom: 1px solid var(--line);
-}
-
-.module-image img {
-  width: min(190px, 68%);
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  mix-blend-mode: multiply;
-}
-
-.module-empty {
-  color: rgba(23, 21, 19, .38);
-  font-size: 18px;
-  letter-spacing: .18em;
-}
-
-.module-card.placeholder {
-  opacity: .72;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(139, 29, 23, .6);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  letter-spacing: .3em;
+  text-indent: .3em;
 }
 
 .module-body {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 让下面的 cqw 字号单位以**卡片宽度**为基准 */
+  container-type: inline-size;
+  width: 100%;
 }
 
+/* 中文名称（放在上方）：放大居中。
+   字号用 **cqw（容器查询单位）** 而不是 vw：
+   卡片宽度固定（约 289px），用 vw 会导致视口越宽字号越大、把长名称挤出卡片。
+   改用 cqw 后字号只跟卡片宽度联动。
+   注意**不能**加 white-space:nowrap —— 拉丁字母+空格+汉字混合的长名称
+   （如「品牌名 商品」）宽度可能约等于卡宽（实测 227/229px），
+   强制不换行只会被裁掉；改用 text-wrap:balance 让它必要时优雅折成两行。 */
 .module-body h3 {
-  margin: 0 0 12px;
+  order: 1;
+  margin: 0;
   font-weight: 400;
-  font-size: 26px;
+  font-size: clamp(20px, 13cqw, 34px);
+  line-height: 1.25;
+  letter-spacing: .04em;
+  text-wrap: balance;
+  max-width: 100%;
 }
+
+/* 英文品牌名（放在下方）：全大写小字 + 字距，作为中文名的副行。
+   HTML 里英文在前是为了不破坏语义，这里用 order 把它排到中文下面。 */
+.module-body .catalog-type {
+  order: 2;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: .3em;
+  text-indent: .3em;
+  text-transform: uppercase;
+}
+
 
 .product-section {
   display: grid;
@@ -624,6 +643,24 @@ h2 {
   border-top: 1px solid var(--line);
 }
 
+/* 品牌行：仅当模块数据带 brand 字段（多品牌目录）时才出现 */
+.catalog-brand {
+  margin: 0 0 6px;
+  color: var(--ink, #2b2b2b);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* 规格说明（如 25 Shades Available） */
+.catalog-variant {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+
 .catalog-type {
   margin: 0 0 8px;
   color: var(--accent);
@@ -790,6 +827,17 @@ body.modal-open {
 
 .modal-info h2 {
   margin-bottom: 14px;
+}
+
+.modal-brand {
+  font-size: 13px;
+}
+
+.modal-meta {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .04em;
 }
 
 .modal-price {

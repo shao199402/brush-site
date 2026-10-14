@@ -9,3 +9,26 @@ data/**/*.tmp
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# 抓取过程中的运行日志
+data/*.log
+
+# 断点续抓的进度文件（可再生）
+data/_bl-progress.json
+
+# 验证截图与探测快照（临时产物）
+data/_shots/
+data/_probe/
+
+# 逐件抓取的原始缓存（体积大、可再生；最终结果在 *-data.js 与 *-ja.json 里）
+data/chikuhodo-cache/
+data/eihodo-cache/
+data/eihodo-list-cache/
+data/koyudo-cache/
+data/koyudo-list-cache/
+data/n8-cache/
+data/takeda-cache/
+
+
+# 备份文件
+data/*.bak
