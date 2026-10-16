@@ -64,14 +64,20 @@ class CDP {
   send(method, params = {}) {
     const id = ++this.id;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      this.ws.send(JSON.stringify({ id, method, params }));
-      setTimeout(() => {
+      // ⚠️ 超时定时器必须**在收到响应时清除**。
+      // 之前只是 `setTimeout(...)` 而不 clearTimeout，导致每次 CDP 调用
+      // 都留下一个 120 秒的待决定时器，把 Node 事件循环一直挂住——
+      // 实测后果：每抓 1 件，进程就要多活 120 秒（墙钟 30 秒/件，
+      // 而真正干活只有 6 秒）。这是本项目最隐蔽的一次性能 bug。
+      const timer = setTimeout(() => {
         if (this.pending.has(id)) {
           this.pending.delete(id);
           reject(new Error('CDP 调用超时: ' + method));
         }
       }, this.callTimeout);
+      const settle = (fn) => (v) => { clearTimeout(timer); fn(v); };
+      this.pending.set(id, { resolve: settle(resolve), reject: settle(reject) });
+      this.ws.send(JSON.stringify({ id, method, params }));
     });
   }
   close() { try { this.ws.close(); } catch { /* ignore */ } }
@@ -114,25 +120,37 @@ class Page {
   async goto(url, { wait = 0, timeout = 45000 } = {}) {
     let loaded = false;
     let targetFrame = null;
+    let fallbackTimer = null;
     const done = new Promise((resolve) => {
-      this.cdp.on((m) => {
+      const handler = (m) => {
         if (m.method === 'Page.frameStartedLoading') {
           if (targetFrame && m.params.frameId === targetFrame) loaded = false;
         } else if (m.method === 'Page.loadEventFired') {
-          if (targetFrame) resolve();
+          if (targetFrame) {
+            // 事件已到，及时清掉兜底定时器，否则它会把事件循环多挂 45 秒
+            if (fallbackTimer) clearTimeout(fallbackTimer);
+            resolve();
+          }
         }
-      });
-      setTimeout(resolve, timeout); // 兜底，避免卡死
+      };
+      this.cdp.on(handler);
+      // 兜底：避免某些页面永不触发 load 事件而卡死
+      fallbackTimer = setTimeout(() => {
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+        resolve();
+      }, timeout);
     });
     const nav = await this.cdp.send('Page.navigate', { url });
     targetFrame = nav && nav.frameId ? nav.frameId : null;
     if (!targetFrame) {
       // 理论上不会发生；保守退回"短暂等待"
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       await sleep(2500);
       if (wait) await sleep(wait);
       return;
     }
     await done;
+    if (fallbackTimer) clearTimeout(fallbackTimer);
     if (!loaded) {
       try { await this.waitFor('document.readyState === "complete"', { timeout: 10000 }); } catch { /* ignore */ }
     }
@@ -268,6 +286,7 @@ async function withChrome(fn, opts = {}) {
   if (headless) args.unshift('--headless=new');
 
   const proc = spawn(chromePath, args, { stdio: 'ignore' });
+  const tSpawn = Date.now();
 
   let cdp = null;
   let page = null;
@@ -301,13 +320,105 @@ async function withChrome(fn, opts = {}) {
 
     page = new Page(cdp);
     page.browserVersion = version.Browser;
+    if (process.env.CDP_TIMING) {
+      console.error('[cdp] 端口 ' + port + ' 就绪耗时 ' + (Date.now() - tSpawn) + 'ms');
+    }
     return await fn(page);
   } finally {
+    const tClose = Date.now();
     if (cdp) cdp.close();
     try { proc.kill(); } catch { /* ignore */ }
     await sleep(400);
     try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* ignore */ }
+    if (process.env.CDP_TIMING) {
+      console.error('[cdp] 端口 ' + port + ' 清理耗时 ' + (Date.now() - tClose) + 'ms');
+    }
   }
 }
 
-module.exports = { withChrome, Page, CDP, sleep, DEFAULT_UA };
+/**
+ * 可复用的浏览器会话：返回一个带着 page 的句柄，**由调用方决定何时关闭**。
+ *
+ * 为什么需要：`withChrome(fn)` 会在 fn 返回后销毁会话，所以"每件商品一个会话"
+ * 意味着每件都要付「建立 0.44s + 清理 0.46s」≈ 0.9 秒。抓 3000 件就白花约 45 分钟。
+ * 抓取这类「同一站点连续访问」的场景应当复用会话，只在**被 WAF 挡掉**或
+ * 累计若干件之后才重建（重建会拿到新的挑战 token）。
+ *
+ * 用法：
+ *   const s = await withChromeReusable({ port: 9501 });
+ *   try { await s.page.goto(url); ... } finally { await s.close(); }
+ */
+async function withChromeReusable(opts = {}) {
+  const chromePath = opts.chromePath || DEFAULT_CHROME;
+  const port = opts.port || (9300 + Math.floor(Math.random() * 600));
+  const profile = path.join(os.tmpdir(), 'cdp-profile-' + process.pid + '-' + port);
+  const headless = opts.headless !== false;
+
+  if (!fs.existsSync(chromePath)) throw new Error('找不到 Chrome: ' + chromePath);
+
+  const args = [
+    '--remote-debugging-port=' + port,
+    '--user-data-dir=' + profile,
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-background-networking',
+    '--window-size=' + (opts.windowSize || '1600,1000'),
+    '--lang=en-US',
+    'about:blank',
+  ];
+  if (headless) args.unshift('--headless=new');
+
+  const proc = spawn(chromePath, args, { stdio: 'ignore' });
+
+  // 等 DevTools 端点就绪
+  const deadline = Date.now() + 30000;
+  let version = null;
+  while (Date.now() < deadline) {
+    try {
+      const r = await fetch('http://127.0.0.1:' + port + '/json/version');
+      if (r.ok) { version = await r.json(); break; }
+    } catch { /* 还没起来 */ }
+    await sleep(400);
+  }
+  if (!version) {
+    try { proc.kill(); } catch { /* ignore */ }
+    throw new Error('DevTools 端点未就绪（端口 ' + port + '）');
+  }
+
+  const created = await (await fetch('http://127.0.0.1:' + port + '/json/new?about:blank', { method: 'PUT' })).json();
+  const cdp = new CDP(created.webSocketDebuggerUrl, { callTimeout: opts.callTimeout || 120000 });
+  await cdp.ready;
+  await cdp.send('Page.enable');
+  await cdp.send('Runtime.enable');
+  await cdp.send('Network.enable');
+  await cdp.send('Network.setUserAgentOverride', {
+    userAgent: opts.userAgent || DEFAULT_UA,
+    acceptLanguage: 'en-US,en;q=0.9',
+    platform: 'Win32',
+  });
+  await cdp.send('Emulation.setTimezoneOverride', { timezoneId: 'America/New_York' }).catch(() => { });
+  if (opts.blockedUrls && opts.blockedUrls.length) {
+    await cdp.send('Network.setBlockedURLs', { urls: opts.blockedUrls }).catch(() => { });
+  }
+
+  const page = new Page(cdp);
+  page.browserVersion = version.Browser;
+
+  let closed = false;
+  return {
+    page,
+    port,
+    async close() {
+      if (closed) return;
+      closed = true;
+      try { cdp.close(); } catch { /* ignore */ }
+      try { proc.kill(); } catch { /* ignore */ }
+      await sleep(300);
+      try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* ignore */ }
+    },
+  };
+}
+
+module.exports = { withChrome, withChromeReusable, Page, CDP, sleep, DEFAULT_UA };

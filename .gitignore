@@ -29,6 +29,19 @@ data/koyudo-list-cache/
 data/n8-cache/
 data/takeda-cache/
 
+# Beautylish：逐件详情缓存（3044 个 JSON，11 MB）与列表分页缓存
+# 两者都可重跑生成，最终结果已固化在 beautylish-data.js 中
+data/beautylish-cache/
+data/beautylish-list-cache/
+
+# 推送/收尾的运行时状态（一次性产物）
+data/_api-push-state.json
+data/_push-beautylish-state.json
+data/_bl-finalized.json
+data/_bl-supervisor.log
+data/_bl-monitor.log
+data/_bl-detail*.log
+
 
 # 备份文件
 data/*.bak
