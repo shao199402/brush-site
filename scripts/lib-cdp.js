@@ -323,7 +323,37 @@ async function withChrome(fn, opts = {}) {
     if (process.env.CDP_TIMING) {
       console.error('[cdp] 端口 ' + port + ' 就绪耗时 ' + (Date.now() - tSpawn) + 'ms');
     }
-    return await fn(page);
+    /**
+     * 第二个参数是会话对象，供需要**多标签页并发**的场景使用
+     * （例如 Beautylish 详情页 6~8 秒/件，单页顺序抓太慢）。
+     * 会话对象的 newPage() 会在同一浏览器里再开一个标签页。
+     * 仍然由 withChrome 统一负责最后的清理——调用方不必自己关浏览器。
+     */
+    const session = {
+      port,
+      async newPage() {
+        const created2 = await (await fetch('http://127.0.0.1:' + port + '/json/new?about:blank', { method: 'PUT' })).json();
+        const cdp2 = new CDP(created2.webSocketDebuggerUrl, { callTimeout: opts.callTimeout || 120000 });
+        await cdp2.ready;
+        await cdp2.send('Page.enable');
+        await cdp2.send('Runtime.enable');
+        await cdp2.send('Network.enable');
+        await cdp2.send('Network.setUserAgentOverride', {
+          userAgent: opts.userAgent || DEFAULT_UA,
+          acceptLanguage: 'en-US,en;q=0.9',
+          platform: 'Win32',
+        });
+        await cdp2.send('Emulation.setTimezoneOverride', { timezoneId: 'America/New_York' }).catch(() => { });
+        if (opts.blockedUrls && opts.blockedUrls.length) {
+          await cdp2.send('Network.setBlockedURLs', { urls: opts.blockedUrls }).catch(() => { });
+        }
+        const p2 = new Page(cdp2);
+        p2.browserVersion = version.Browser;
+        p2.close = async () => { try { cdp2.close(); } catch { /* ignore */ } };
+        return p2;
+      },
+    };
+    return await fn(page, session);
   } finally {
     const tClose = Date.now();
     if (cdp) cdp.close();
@@ -410,6 +440,36 @@ async function withChromeReusable(opts = {}) {
   return {
     page,
     port,
+    /**
+     * 在同一浏览器里再开一个标签页。
+     *
+     * 为什么需要：某些站点单标签顺序抓太慢（Beautylish 详情页 6~8 秒/件，
+     * 3000 件要 7 小时）。实测该站能容忍少量并发（4 个标签页稳定），
+     * 因此提供这个方法来开并行标签页，多页同时抓，整体压到 1.5~2 小时。
+     *
+     * 用法：
+     *   const tab2 = await session.newPage();
+     *   ... 用完 tab2.close()（只关标签页，不影响浏览器）
+     */
+    async newPage() {
+      const created2 = await (await fetch('http://127.0.0.1:' + port + '/json/new?about:blank', { method: 'PUT' })).json();
+      const cdp2 = new CDP(created2.webSocketDebuggerUrl, { callTimeout: opts.callTimeout || 120000 });
+      await cdp2.ready;
+      await cdp2.send('Page.enable');
+      await cdp2.send('Runtime.enable');
+      await cdp2.send('Network.enable');
+      await cdp2.send('Network.setUserAgentOverride', {
+        userAgent: opts.userAgent || DEFAULT_UA,
+        acceptLanguage: 'en-US,en;q=0.9',
+        platform: 'Win32',
+      });
+      await cdp2.send('Emulation.setTimezoneOverride', { timezoneId: 'America/New_York' }).catch(() => { });
+      const p2 = new Page(cdp2);
+      p2.browserVersion = version.Browser;
+      // 只关标签页的连接，不动浏览器
+      p2.close = async () => { try { cdp2.close(); } catch { /* ignore */ } };
+      return p2;
+    },
     async close() {
       if (closed) return;
       closed = true;

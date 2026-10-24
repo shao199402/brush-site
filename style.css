@@ -540,7 +540,11 @@ h2 {
   justify-content: space-between;
   gap: clamp(24px, 5vw, 72px);
   align-items: end;
-  padding: clamp(56px, 8vw, 112px) clamp(22px, 7vw, 110px) clamp(34px, 5vw, 72px);
+  /*
+   * 底部留白收窄：原来 clamp(34px,5vw,72px) 与下面 .catalog-page 的顶部
+   * 留白叠加，在 1440 宽下形成 144px 的空带，页面显得松散。
+   */
+  padding: clamp(52px, 7vw, 96px) clamp(22px, 7vw, 110px) clamp(26px, 3.6vw, 50px);
   border-bottom: 1px solid var(--line);
   background: linear-gradient(135deg, var(--paper), var(--white));
 }
@@ -555,9 +559,10 @@ h2 {
   border-top: 1px solid var(--line);
 }
 
+/* 商品目录页：紧接 hero，顶部留白要小，否则与 hero 底部叠加成大片空白 */
 .catalog-section.catalog-page {
   border-top: 0;
-  padding-top: clamp(34px, 5vw, 72px);
+  padding-top: clamp(22px, 3vw, 40px);
 }
 
 .catalog-heading {
@@ -573,33 +578,104 @@ h2 {
   margin-bottom: 12px;
 }
 
+/* ===== 商品筛选工具栏（带标签，一/二级联动） ===== */
 .catalog-tools {
   position: sticky;
   top: 83px;
   z-index: 5;
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(160px, 240px) auto;
-  gap: 12px;
-  align-items: center;
-  padding: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 16px;
+  padding: 18px 20px;
   margin-bottom: 30px;
   border: 1px solid var(--line);
-  background: rgba(255, 253, 249, .9);
+  background: rgba(255, 253, 249, .92);
   backdrop-filter: blur(10px);
 }
 
-.catalog-tools input,
-.catalog-tools select {
+/* 每个控件 = 小标签 + 控件，纵向排列 */
+.catalog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 0 0 190px;
+  min-width: 0;
+}
+
+/*
+ * ⚠ 必须显式处理 [hidden]。
+ * 浏览器默认 `[hidden]{display:none}` 的优先级低于 `.catalog-field{display:flex}`，
+ * 于是带 hidden 的控件会被强行显示。实测 Beautylish 页因此多出一个空的
+ * 「二级分类」下拉（它的数据里没有 dimensions）。品牌下拉同理。
+ */
+.catalog-field[hidden] {
+  display: none !important;
+}
+
+/* 搜索框吃掉剩余空间 */
+.catalog-field--search {
+  flex: 1 1 240px;
+}
+
+.catalog-field__label {
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: .16em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.catalog-field input,
+.catalog-field select {
   width: 100%;
-  min-height: 44px;
-  padding: 10px 13px;
+  min-height: 42px;
+  padding: 9px 12px;
   border: 1px solid var(--line);
   border-radius: 0;
   color: var(--ink);
   background: var(--white);
   font: inherit;
   font-size: 14px;
+  transition: border-color .18s ease, box-shadow .18s ease;
 }
+
+.catalog-field input:hover,
+.catalog-field select:hover { border-color: rgba(23, 21, 18, .32); }
+
+.catalog-field input:focus,
+.catalog-field select:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(23, 21, 18, .06);
+}
+
+/* 计数：与控件底边对齐，靠右 */
+.catalog-tools > .catalog-count {
+  margin-left: auto;
+  padding-bottom: 11px;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* 窄屏：每个控件占满一行，标签仍在控件上方 */
+@media (max-width: 640px) {
+  .catalog-tools {
+    position: static;
+    padding: 16px;
+    gap: 12px;
+  }
+  .catalog-field,
+  .catalog-field--search {
+    flex: 1 1 100%;
+  }
+  .catalog-tools > .catalog-count {
+    margin-left: 0;
+    padding-bottom: 0;
+  }
+}
+/* ===== 工具栏样式结束 ===== */
 
 .catalog-count {
   color: var(--muted);
@@ -897,5 +973,376 @@ body.modal-open {
 @media (max-width: 760px) {
   .modal-body {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   平板 / 小屏桌面工具栏（641 ~ 1100px）
+   ──────────────────────────────────────────────────────────────────
+   这个区间原来是桌面版的 flex 布局，190px 的固定 flex-basis 在
+   768px 宽下会挤成 4 行、175~285px 高，既占地方又参差。
+   统一改成三列网格：搜索整行，其余控件一行能放 3 个。
+   放在移动端块之前，让 ≤640px 的规则仍然能覆盖它。
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .catalog-tools {
+    /*
+     * 用 flex 而不是 grid。
+     * 试过 grid + auto-fit：因为「计数」那一项是 grid-column: 1/-1（横跨所有轨道），
+     * 每一条轨道都算「有元素」，auto-fit 就无法塌陷空轨道，
+     * 于是白凤堂只有 2 个控件时右边仍留着一条同样宽的空白。
+     * flex 的 flex-grow 会让最后一行剩下的控件自动撑满，不留空洞。
+     */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 15px;
+    /*
+     * 取消吸顶：≤900px 时顶栏会变成两行（约 111px 高），
+     * 而吸顶偏移是写死的 top: 83px，工具栏会钻到顶栏下面，
+     * 滚动时还能看到 hero 的按钮从缝里露出来。
+     */
+    position: static;
+  }
+
+  .catalog-field,
+  .catalog-field--search {
+    flex: 1 1 170px;
+    width: auto;
+    min-width: 0;
+  }
+
+  .catalog-field--search {
+    flex: 1 1 100%;
+  }
+
+  .catalog-field input,
+  .catalog-field select {
+    min-height: 46px;
+    font-size: 16px;      /* 同手机：低于 16px 时 iOS 聚焦会放大页面 */
+  }
+
+  .catalog-tools > .catalog-count {
+    flex: 1 1 100%;
+    margin-left: 0;
+    padding-bottom: 0;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   移动端适配（集中覆盖，放在最后确保优先级）
+   ──────────────────────────────────────────────────────────────────
+   手机上实测到的四个主要问题：
+     1. h1 的 clamp 下限是 46px，在 390px 屏上仍是 46px，
+        中英混排标题被硬折成「Beautylish 商 / 品」，很难看
+     2. hero 上下留白合计近 400px，首屏完全看不到商品
+     3. 筛选工具栏一行一个控件，堆到 275~347px 高
+     4. 输入框字号 14px，iOS Safari 聚焦时会强制放大页面
+   下面逐条解决。
+   ══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  /* ── 1. 标题：下限从 46px 降到 28px，并允许必要时才断词 ── */
+  h1 {
+    font-size: clamp(28px, 8vw, 40px);
+    line-height: 1.18;
+    letter-spacing: .02em;
+    margin-bottom: 16px;
+    word-break: keep-all;        /* 优先在空格处断行，避免「商/品」这种硬切 */
+    overflow-wrap: anywhere;     /* 单个长英文单词仍能兜底 */
+  }
+
+  h2 {
+    font-size: clamp(21px, 5.6vw, 28px);
+    letter-spacing: .02em;
+  }
+
+  .lead {
+    font-size: 15px;
+    line-height: 1.78;
+  }
+
+  /* ── 2. 顶栏收紧，正文区左右留白统一到 16px ── */
+  .site-header {
+    padding: 13px 16px;
+    gap: 8px;
+  }
+
+  .top-links,
+  .module-section,
+  .ad-section {
+    padding: 30px 16px;
+  }
+
+  /* ── 3. hero 压扁，让首屏能看到商品 ── */
+  .catalog-hero {
+    padding: 16px 16px 14px;
+    gap: 10px;
+  }
+
+  .catalog-hero .lead {
+    margin-bottom: 0;
+    font-size: 14px;
+    line-height: 1.65;
+    /* 手机上把说明文字收到 2 行，避免首屏被文字占满 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /*
+   * hero 里的「返回首页」按钮在手机上隐藏：
+   * 顶部导航已经常驻「首页 / 全部商品」两个入口，这个按钮完全重复，
+   * 却要占掉 44px + 间距，把首屏的商品继续往下推。
+   * 注意它在 HTML 里是 .catalog-hero 的**直接子元素** <a class="btn ghost">，
+   * 不在 .hero-actions 容器里（第一版写错选择器没生效）。
+   */
+  .catalog-hero > a.btn {
+    display: none;
+  }
+
+  .hero-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .hero-actions .btn {
+    flex: 1 1 auto;
+    min-height: 44px;            /* 触控目标下限 */
+    padding: 11px 18px;
+    font-size: 14px;
+  }
+
+  .catalog-section {
+    padding: 20px 16px 40px;
+  }
+
+  .catalog-section.catalog-page {
+    padding-top: 14px;
+  }
+
+  /* ── 4. 筛选工具栏：搜索独占一行，其余自动两列（flex 撑满，不留空洞） ── */
+  .catalog-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
+    position: static;            /* 手机上不做吸顶，避免遮挡内容 */
+  }
+
+  .catalog-field,
+  .catalog-field--search {
+    flex: 1 1 140px;             /* 一行放 2 个，最后剩下的自动撑满 */
+    width: auto;
+    min-width: 0;
+    gap: 5px;
+  }
+
+  .catalog-field--search {
+    flex: 1 1 100%;              /* 搜索框独占一行 */
+  }
+
+  .catalog-field__label {
+    font-size: 10px;
+    letter-spacing: .1em;
+  }
+
+  /* 字号 16px 是 iOS 不触发「聚焦自动放大」的门槛，不能更小 */
+  .catalog-field input,
+  .catalog-field select {
+    min-height: 44px;
+    padding: 10px 10px;
+    font-size: 16px;
+    text-overflow: ellipsis;
+  }
+
+  .catalog-tools > .catalog-count {
+    flex: 1 1 100%;
+    margin-left: 0;
+    padding: 2px 0 0;
+    font-size: 12px;
+    white-space: normal;
+  }
+
+  /* ── 5. 商品卡片：减小图片区与内边距，简介收成 2 行 ── */
+  .catalog-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .catalog-image {
+    padding: 12px;
+  }
+
+  .catalog-image img {
+    height: clamp(140px, 46vw, 190px);
+  }
+
+  .catalog-body {
+    padding: 15px;
+  }
+
+  .catalog-body h3 {
+    font-size: 16px;
+    line-height: 1.45;
+  }
+
+  .catalog-type {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .catalog-price {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .catalog-desc {
+    min-height: 0;
+    -webkit-line-clamp: 2;
+    font-size: 12.5px;
+    margin-bottom: 12px;
+  }
+
+  .catalog-link {
+    min-height: 40px;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .load-more {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 24px;
+  }
+
+  /* ── 6. 首页：占位块不再霸占首屏 ── */
+  .link-placeholder {
+    min-height: 96px;
+    padding: 16px;
+    font-size: 13px;
+  }
+
+  /*
+   * 手机上把「产品模块」提到最前面。
+   * 「顶部链接」目前是空占位（一段说明文字 + 虚线框），
+   * 却挡在真正的模块入口前面，用户要滚过大半屏才看到白凤堂等入口。
+   * main 是块级容器，用 flex + order 调整视觉顺序，
+   * 导航里的 #links / #modules / #ads 锚点仍然有效。
+   */
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #modules {
+    order: 1;
+  }
+
+  #links {
+    order: 2;
+  }
+
+  #ads {
+    order: 3;
+  }
+
+  .module-grid {
+    gap: 12px;
+  }
+
+  .module-card {
+    padding: 16px;
+  }
+
+  /* ── 7. 商品详情弹窗：手机全屏 ── */
+  .modal-panel {
+    width: 100%;
+    max-height: 100vh;
+    max-height: 100dvh;
+    height: 100%;
+    border: 0;
+  }
+
+  .modal-body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 16px 32px;
+  }
+
+  .modal-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .modal-detail table {
+    font-size: 13px;
+  }
+
+  /*
+   * 图库改成横向滑动条。
+   * 原来是纵向 grid，每张图按 100% 宽度铺满（手机上约 330×330），
+   * 一个商品有 4~6 张图就叠出 2000px 以上，用户要滚很久才看得到价格和参数。
+   * 改成横向滚动 + scroll-snap：高度限制在 46vw，一屏能看到图的全部和下面的信息。
+   */
+  .modal-gallery {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .modal-gallery img {
+    flex: 0 0 76%;
+    width: 76%;
+    max-height: 46vw;
+    object-fit: contain;
+    scroll-snap-align: start;
+  }
+
+  /* ── 8. 页脚 ── */
+  .site-footer {
+    padding: 26px 16px;
+    gap: 14px;
+  }
+}
+
+/* 超窄屏（小于 340px，如老款 320px 机型）：工具栏改回单列
+ *
+ * ⚠ 这个断点必须小于常见手机宽度（iPhone 12/13/14 是 390，SE 是 375），
+ * 否则会把正常手机也压成单列。第一版写成 400px，结果 390px 的 iPhone
+ * 落进这个分支，两列网格失效，工具栏又变成一行一个控件。 */
+@media (max-width: 339px) {
+  .catalog-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-field--search {
+    grid-column: 1;
+  }
+
+  h1 {
+    font-size: clamp(24px, 8.6vw, 30px);
+  }
+}
+
+/* 横屏手机：限制 hero 高度，避免竖屏规则把内容拉太长 */
+@media (max-height: 480px) and (orientation: landscape) {
+  .catalog-hero {
+    padding: 14px 16px 12px;
+  }
+
+  h1 {
+    font-size: 26px;
+    margin-bottom: 10px;
   }
 }
