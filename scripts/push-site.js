@@ -103,6 +103,8 @@ function collectLocalFiles() {
         if (SKIP_DIR.has(ent.name)) continue;
         walk(abs);
       } else {
+        // 下划线开头的是临时探针脚本，不随站点发布
+        if (ent.name.startsWith('_')) continue;
         const ext = path.extname(ent.name).toLowerCase();
         if (SKIP_EXT.has(ext)) continue;
         out.push(rel);

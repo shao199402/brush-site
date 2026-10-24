@@ -54,8 +54,15 @@ function productMatches(product){
   const byType = state.type === '全部' || level1Of(product) === state.type;
   // 品牌筛选只在数据带 brand 时生效（老模块没有该字段，恒为「全部」）
   const byBrand = state.brand === '全部' || !product.brand || product.brand === state.brand;
-  // 二级筛选：数据带 dimensions 才生效
-  const byDim = state.dim === '全部' || dimValuesOf(product).indexOf(state.dim) !== -1;
+  /*
+   * 二级筛选：数据带 dimensions 才生效。
+   * `state.dim || '全部'` 这句兜底很重要：把 select 的 value 设成一个
+   * 不存在的选项时，浏览器的 value 会变成空字符串 ''，若不兜底，
+   * 空值既不等于「全部」也不匹配任何 dimensions，结果就是「共 0 个商品」——
+   * 明明什么都没筛却一件都不显示。
+   */
+  const dimSelected = state.dim || '全部';
+  const byDim = dimSelected === '全部' || dimValuesOf(product).indexOf(dimSelected) !== -1;
   if (!q) return byType && byBrand && byDim;
   const categories = Array.isArray(product.categories) ? product.categories.join(' ') : '';
   const haystack = normalize([
@@ -228,7 +235,7 @@ els.type.addEventListener('change', e => {
   render(true);
 });
 if (els.brand) els.brand.addEventListener('change', e => { state.brand = e.target.value; render(true); });
-if (els.dim) els.dim.addEventListener('change', e => { state.dim = e.target.value; render(true); });
+if (els.dim) els.dim.addEventListener('change', e => { state.dim = e.target.value || '全部'; render(true); });
 els.more.addEventListener('click', () => render(false));
 els.grid.addEventListener('click', e => { const btn = e.target.closest('[data-index]'); if (btn) openProduct(Number(btn.dataset.index)); });
 els.modalClose.addEventListener('click', closeProduct);
