@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-10-16T14:49:44.951Z",
+  "model": "deepseek-chat",
+  "queue": 1,
+  "queueChars": 35,
+  "translatedThisRun": 1,
+  "cacheSize": 3279,
+  "overrides": 0,
+  "apiErrors": 0,
+  "missing": 0,
+  "stillMissing": 0
+}

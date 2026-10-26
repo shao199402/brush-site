@@ -89,11 +89,17 @@ function gitBlobSha(buf) {
   return crypto.createHash('sha1').update(head).update(buf).digest('hex');
 }
 
-/** 需要同步的本地文件（相对路径，正斜杠） */
+/**
+ * 需要同步的本地文件（相对路径，正斜杠）
+ *
+ * 纳入 assets/ 与 data/，但**严格按 .gitignore 过滤**：
+ * 仓库自己的忽略规则决定什么该进版本库，避免把
+ * 200MB 抓取缓存、截图、*.bak 备份推到线上。
+ * 用 `git check-ignore --stdin` 一次性判定（5000 个文件也只要一次调用）。
+ */
 function collectLocalFiles() {
   const out = [];
-  const SKIP_DIR = new Set(['.git', 'node_modules', 'assets', 'data', '.github']);
-  const SKIP_EXT = new Set(['.log', '.tmp', '.bak', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.mp4']);
+  const SKIP_DIR = new Set(['.git', 'node_modules', '.github']);
   const walk = (dir) => {
     for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
       if (ent.name.startsWith('.') && ent.name !== '.gitignore') continue;
@@ -105,14 +111,39 @@ function collectLocalFiles() {
       } else {
         // 下划线开头的是临时探针脚本，不随站点发布
         if (ent.name.startsWith('_')) continue;
-        const ext = path.extname(ent.name).toLowerCase();
-        if (SKIP_EXT.has(ext)) continue;
         out.push(rel);
       }
     }
   };
   walk(ROOT);
-  return out.sort();
+
+  // 用 git 自己的忽略规则过滤
+  //
+  // 两个坑：
+  //  1. git 默认 core.quotepath=true，非 ASCII 路径会输出成 "\345\256\211..." 这种
+  //     C 风格转义，跟本地原始文件名对不上，导致中文名文件（截图）漏过滤。
+  //     必须传 -c core.quotepath=false。
+  //  2. .gitignore 里的 `data/*.bak` 只匹配以 .bak **结尾**的文件，
+  //     而我们的备份是 `xxx.bak-2026-10-22T05-35-01` 这种带时间戳的，
+  //     规则管不到，得单独按文件名含 .bak 过滤掉（否则每个 9MB 的备份都会推上去）。
+  const listed = out.join('\n');
+  const r = spawnSync('git', ['-c', 'core.quotepath=false', 'check-ignore', '--stdin'], {
+    cwd: ROOT, input: listed, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+  });
+  const ignored = new Set(
+    (r.stdout || '').split('\n').map((s) => s.trim()).filter(Boolean)
+  );
+  if (ignored.size) console.log('  .gitignore 排除: ' + ignored.size + ' 个文件');
+
+  const isBackup = (f) => {
+    const base = f.split('/').pop();
+    return /\.bak$/i.test(base) || /\.bak-/i.test(base) || /\.bak\./i.test(base)
+      || /\.log$/i.test(base) || /\.tmp$/i.test(base);
+  };
+  const backups = out.filter((f) => !ignored.has(f) && isBackup(f)).length;
+  if (backups) console.log('  备份/日志文件排除: ' + backups + ' 个');
+
+  return out.filter((f) => !ignored.has(f) && !isBackup(f)).sort();
 }
 
 (async () => {

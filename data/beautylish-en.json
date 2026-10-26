@@ -1,0 +1,34 @@
+{
+ "generatedAt": "2026-10-16T14:49:39.406Z",
+ "source": "https://www.beautylish.com",
+ "sourceMode": "beautylish-jsonld+html",
+ "note": "正文由「渲染后 HTML + Node 侧解析」得到，避免 SPA 缺字中间态",
+ "count": 1,
+ "products": [
+  {
+   "slug": "kitsch-microfiber-face-towels",
+   "title": "Kitsch Microfiber Face Towels",
+   "brand": "Kitsch",
+   "price": "75",
+   "priceCurrency": "CNY",
+   "sku": "84262",
+   "gtin": "840455513959",
+   "images": [],
+   "imageUrls": [
+    "https://dy6g3i6a1660s.cloudfront.net/VsVo01IFpM5M-azstb8-agR-BH4/prod_p-fc/kitsch-microfiber-face-towels-terracotta.jpg"
+   ],
+   "ldDescription": "#####About Kitsch Microfiber Face Towels",
+   "sectionsEn": {
+    "Product Description": "About Kitsch Microfiber Face Towels",
+    "Ingredients": "We don't have ingredient data available for this item."
+   },
+   "variants": [],
+   "sourceUrl": "https://www.beautylish.com/s/kitsch-microfiber-face-towels-terracotta",
+   "card": {
+    "priceText": "CN¥75",
+    "optionsText": "",
+    "text": "KITSCH Microfiber Face Towels CN¥75"
+   }
+  }
+ ]
+}

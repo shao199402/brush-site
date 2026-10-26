@@ -1,0 +1,133 @@
+{
+ "generatedAt": "2026-10-19T01:40:07.963Z",
+ "warnings": [
+  "永丰堂：19 件商品当前售罄（无价格）",
+  "永丰堂：31 件取价失败（多为站点响应超时；这类商品本次未参与价格对比，不代表价格没变）",
+  "竹宝堂：1 件取价失败（多为站点响应超时；这类商品本次未参与价格对比，不代表价格没变）"
+ ],
+ "brands": [
+  {
+   "key": "hakuho",
+   "label": "白凤堂",
+   "currency": "JPY",
+   "localCount": 1071,
+   "onlineCount": 1070,
+   "matchedCount": 1069,
+   "noOnlinePrice": 2,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [
+    {
+     "slug": "hb8075",
+     "raw": "8,800 日元（含税）",
+     "yen": 8800,
+     "currency": "JPY",
+     "title": "2026holiday「八丁とんがり筆」"
+    }
+   ],
+   "goneReappeared": 0
+  },
+  {
+   "key": "koyudo",
+   "label": "晃佑堂",
+   "currency": "JPY",
+   "localCount": 278,
+   "onlineCount": 278,
+   "matchedCount": 278,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "takeda",
+   "label": "竹田",
+   "currency": "JPY",
+   "localCount": 370,
+   "onlineCount": 370,
+   "matchedCount": 370,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "n8",
+   "label": "熊永堂",
+   "currency": "JPY",
+   "localCount": 165,
+   "onlineCount": 165,
+   "matchedCount": 165,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "eihodo",
+   "label": "永丰堂",
+   "currency": "JPY",
+   "localCount": 420,
+   "onlineCount": 370,
+   "matchedCount": 370,
+   "noOnlinePrice": 50,
+   "rangeSkipped": 0,
+   "fetchFailed": 31,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 19
+  },
+  {
+   "key": "chikuhodo",
+   "label": "竹宝堂",
+   "currency": "JPY",
+   "localCount": 316,
+   "onlineCount": 315,
+   "matchedCount": 315,
+   "noOnlinePrice": 1,
+   "rangeSkipped": 0,
+   "fetchFailed": 1,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "beautylish",
+   "label": "Beautylish",
+   "currency": "CNY",
+   "localCount": 3044,
+   "onlineCount": 3095,
+   "matchedCount": 2773,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 271,
+   "fetchFailed": 0,
+   "changes": [
+    {
+     "handle": "beautylish-mob-beauty-peptide-drench-cushion-lip-gloss",
+     "title": "MOB Beauty Peptide Drench Cushion Lip Gloss Riff",
+     "oldRaw": "USD24",
+     "newRaw": "CN¥215",
+     "oldNum": 24,
+     "newNum": 215,
+     "delta": 191,
+     "pct": 795.8333333333333,
+     "direction": "up"
+    }
+   ],
+   "added": [],
+   "goneReappeared": 51
+  }
+ ]
+}

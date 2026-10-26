@@ -1,0 +1,219 @@
+{
+ "generatedAt": "2026-10-17T16:15:59.878Z",
+ "warnings": [
+  "永丰堂：18 件商品当前售罄（无价格）"
+ ],
+ "brands": [
+  {
+   "key": "hakuho",
+   "label": "白凤堂",
+   "currency": "JPY",
+   "localCount": 1071,
+   "onlineCount": 1070,
+   "matchedCount": 1069,
+   "noOnlinePrice": 2,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [
+    {
+     "slug": "hb8075",
+     "raw": "8,800 日元（含税）",
+     "yen": 8800,
+     "currency": "JPY",
+     "title": "2026holiday「八丁とんがり筆」"
+    }
+   ],
+   "goneReappeared": 0
+  },
+  {
+   "key": "koyudo",
+   "label": "晃佑堂",
+   "currency": "JPY",
+   "localCount": 278,
+   "onlineCount": 278,
+   "matchedCount": 278,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "takeda",
+   "label": "竹田",
+   "currency": "JPY",
+   "localCount": 370,
+   "onlineCount": 370,
+   "matchedCount": 370,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "n8",
+   "label": "熊永堂",
+   "currency": "JPY",
+   "localCount": 165,
+   "onlineCount": 165,
+   "matchedCount": 165,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "eihodo",
+   "label": "永丰堂",
+   "currency": "JPY",
+   "localCount": 420,
+   "onlineCount": 380,
+   "matchedCount": 380,
+   "noOnlinePrice": 40,
+   "rangeSkipped": 0,
+   "fetchFailed": 22,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 18
+  },
+  {
+   "key": "chikuhodo",
+   "label": "竹宝堂",
+   "currency": "JPY",
+   "localCount": 316,
+   "onlineCount": 315,
+   "matchedCount": 315,
+   "noOnlinePrice": 1,
+   "rangeSkipped": 0,
+   "fetchFailed": 1,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "beautylish",
+   "label": "Beautylish",
+   "currency": "CNY",
+   "localCount": 3044,
+   "onlineCount": 2955,
+   "matchedCount": 2647,
+   "noOnlinePrice": 130,
+   "rangeSkipped": 267,
+   "fetchFailed": 0,
+   "changes": [
+    {
+     "handle": "beautylish-mob-beauty-peptide-drench-cushion-lip-gloss",
+     "title": "MOB Beauty Peptide Drench Cushion Lip Gloss Riff",
+     "oldRaw": "USD24",
+     "newRaw": "CN¥215",
+     "oldNum": 24,
+     "newNum": 215,
+     "delta": 191,
+     "pct": 795.8333333333333,
+     "direction": "up"
+    },
+    {
+     "handle": "beautylish-surratt-beauty-relevee-lash-curler-refill-pads",
+     "title": "Surratt Beauty Relevee Lash Curler Refill Pads",
+     "oldRaw": "CN¥80",
+     "newRaw": "CN¥290",
+     "oldNum": 80,
+     "newNum": 290,
+     "delta": 210,
+     "pct": 262.5,
+     "direction": "up"
+    },
+    {
+     "handle": "beautylish-surratt-beauty-artistique-blush-duos",
+     "title": "Surratt Beauty Artistique Blush Duos Barbe À Papa",
+     "oldRaw": "CN¥540",
+     "newRaw": "CN¥276",
+     "oldNum": 540,
+     "newNum": 276,
+     "delta": -264,
+     "pct": -48.888888888888886,
+     "direction": "down"
+    },
+    {
+     "handle": "beautylish-susanne-kaufmann-hand-soap-and-hand-lotion",
+     "title": "Susanne Kaufmann Hand Soap & Hand Lotion",
+     "oldRaw": "CN¥510",
+     "newRaw": "CN¥350",
+     "oldNum": 510,
+     "newNum": 350,
+     "delta": -160,
+     "pct": -31.372549019607842,
+     "direction": "down"
+    },
+    {
+     "handle": "beautylish-surratt-beauty-surreal-skin-foundation-wand-refill",
+     "title": "Surratt Beauty Surreal Skin Foundation Wand Refill 9",
+     "oldRaw": "CN¥550",
+     "newRaw": "CN¥665",
+     "oldNum": 550,
+     "newNum": 665,
+     "delta": 115,
+     "pct": 20.909090909090907,
+     "direction": "up"
+    },
+    {
+     "handle": "beautylish-velour-beauty-lash-xtensions-kit",
+     "title": "Velour Beauty Velour Xtensions Kit 2.0",
+     "oldRaw": "CN¥222",
+     "newRaw": "CN¥185",
+     "oldNum": 222,
+     "newNum": 185,
+     "delta": -37,
+     "pct": -16.666666666666664,
+     "direction": "down"
+    },
+    {
+     "handle": "beautylish-slip-blockout-sleep-mask",
+     "title": "Slip Blockout Sleep Mask",
+     "oldRaw": "CN¥932",
+     "newRaw": "CN¥990",
+     "oldNum": 932,
+     "newNum": 990,
+     "delta": 58,
+     "pct": 6.223175965665236,
+     "direction": "up"
+    },
+    {
+     "handle": "beautylish-susanne-kaufmann-body-butter-for-the-senses",
+     "title": "Susanne Kaufmann Body Butter for the Senses",
+     "oldRaw": "CN¥640",
+     "newRaw": "CN¥645",
+     "oldNum": 640,
+     "newNum": 645,
+     "delta": 5,
+     "pct": 0.78125,
+     "direction": "up"
+    },
+    {
+     "handle": "beautylish-u-beauty-the-weekender-edit",
+     "title": "U Beauty The Weekender Edit",
+     "oldRaw": "CN¥1595",
+     "newRaw": "CN¥1590",
+     "oldNum": 1595,
+     "newNum": 1590,
+     "delta": -5,
+     "pct": -0.3134796238244514,
+     "direction": "down"
+    }
+   ],
+   "added": [],
+   "goneReappeared": 51
+  }
+ ]
+}
