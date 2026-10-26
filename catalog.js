@@ -7,15 +7,16 @@
  *   - product.variantNote 存在 → 详情里显示规格说明（如 25 Shades Available）
  *   - product.dimensions 存在 → 出现「按分类维度筛选」下拉（系列 / 用途 / 毛质）
  */
-const state = { shown: 0, pageSize: 48, keyword: '', type: '全部', brand: '全部', dim: '全部' };
+const state = { shown: 0, pageSize: 48, keyword: '', type: '全部', brand: '全部', dim: '全部', sort: 'default' };
 const els = {
   grid: document.querySelector('#catalogGrid'),
   count: document.querySelector('#catalogCount'),
   search: document.querySelector('#catalogSearch'),
-  type: document.querySelector('#catalogType'),
+  tabs: document.querySelector('#catalogTabs'),     // 一级分类：横向标签页
+  sort: document.querySelector('#catalogSort'),     // 排序
   brand: document.querySelector('#catalogBrand'),
   brandWrap: document.querySelector('#catalogBrandWrap'),
-  dim: document.querySelector('#catalogDim'),
+  dim: document.querySelector('#catalogDim'),       // 二级分类：横向筛选条
   dimWrap: document.querySelector('#catalogDimWrap'),
   more: document.querySelector('#loadMore'),
   modal: document.querySelector('#productModal'),
@@ -71,10 +72,46 @@ function productMatches(product){
   ].join(' '));
   return byType && byBrand && byDim && haystack.includes(q);
 }
-function filteredProducts(){ return (window.PRODUCTS || []).filter(productMatches); }
+/**
+ * 价格数字（用于排序与展示拆分）
+ * 支持的写法："¥5,830 含税" / "CN¥200" / "CN¥45 - CN¥330" / "1,100 日元（含税）"
+ * 取第一个数字作为排序依据（区间价取最低价，与电商习惯一致）。
+ */
+function priceValue(product){
+  const m = String(product.price || '').replace(/,/g, '').match(/(\d+(?:\.\d+)?)/);
+  return m ? Number(m[1]) : Infinity;
+}
+/** 把价格拆成 {符号, 数值, 后缀}，便于电商式排版（符号小、数字大） */
+function priceParts(product){
+  const raw = String(product.price || '');
+  const m = raw.match(/^([^\d]*?)([\d,]+(?:\.\d+)?)(.*)$/);
+  if (!m) return { cur: '', amount: raw, suffix: '' };
+  return { cur: m[1].trim(), amount: m[2], suffix: m[3].trim() };
+}
+function filteredProducts(){
+  const list = (window.PRODUCTS || []).filter(productMatches);
+  if (state.sort === 'price-asc') list.sort((a, b) => priceValue(a) - priceValue(b));
+  else if (state.sort === 'price-desc') list.sort((a, b) => priceValue(b) - priceValue(a));
+  return list;
+}
+/** 一级分类：横向标签页（电商常见的「全部 / 分类…」切换方式） */
 function renderTypes(){
-  const types = Array.from(new Set((window.PRODUCTS || []).map(level1Of))).sort((a,b)=>a.localeCompare(b,'zh-Hans-CN'));
-  els.type.innerHTML = ['全部', ...types].map(type => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join('');
+  if (!els.tabs) return;
+  const types = Array.from(new Set((window.PRODUCTS || []).map(level1Of)));
+  // 按商品数从多到少排，热门的排前面
+  const counts = {};
+  for (const p of (window.PRODUCTS || [])) {
+    const t = level1Of(p);
+    counts[t] = (counts[t] || 0) + 1;
+  }
+  types.sort((a, b) => (counts[b] || 0) - (counts[a] || 0) || a.localeCompare(b, 'zh-Hans-CN'));
+  const items = ['全部', ...types];
+  els.tabs.innerHTML = items.map((type) => {
+    const active = state.type === type ? ' is-active' : '';
+    const n = type === '全部' ? (window.PRODUCTS || []).length : (counts[type] || 0);
+    return `<button class="tab${active}" type="button" role="tab" aria-selected="${state.type === type}" data-type="${escapeHtml(type)}">`
+      + escapeHtml(type) + '<span class="tab-n">' + n + '</span></button>';
+  }).join('');
 }
 /**
  * 二级分类下拉（与一级「品类」**联动**）。
@@ -143,23 +180,45 @@ function renderDims(){
   if (state.dim !== '全部' && !valid.has(state.dim)) state.dim = '全部';
 
   /*
-   * 首项文案固定为「全部二级分类」，不再拼「（化妆刷）」这种作用域后缀。
-   * 手机上二级下拉只有约 161px 宽，加后缀会被截成「全部二级分类（化妆…」；
-   * 而作用域本来就由旁边的一级下拉显示，后缀纯属冗余。
+   * 二级分类渲染成**横向可滑动的筛选条**（电商常见样式），而不是下拉。
+   * 只有当一级下的二级值超过 1 个时才显示，避免「只有一个选项」的无效控件。
+   * 每个 chip 后面带件数，让用户知道点进去有多少东西。
    */
-  const parts = ['<option value="全部">全部二级分类</option>'];
+  const chips = [];
   const keys = Object.keys(buckets);
+  /*
+   * 注意：「全部」上的数字必须是**商品数**，不是把各维度值加起来。
+   * 一个商品同时有 系列+用途+毛质 三个值，累加会算出 2828 这种远超总数
+   * （1071）的荒谬数字。所以单独统计「当前一级下、带任一维度值」的商品数。
+   */
+  let scopeCount = 0;
+  for (const p of (window.PRODUCTS || [])) {
+    if (state.type !== '全部' && level1Of(p) !== state.type) continue;
+    if (dimValuesOf(p).length) scopeCount++;
+  }
   for (const k of keys) {
     const entries = Array.from(buckets[k].entries()).sort((a, b) => b[1] - a[1]);
     if (!entries.length) continue;
-    parts.push('<optgroup label="' + escapeHtml(DIM_LABELS[k] || k) + '">');
+    // 单一维度时不显示维度名，多维度时用 data-dim 做视觉分组
+    const multiDim = keys.filter((x) => buckets[x].size > 0).length > 1;
+    const dimName = DIM_LABELS[k] || k;
     for (const [v, n] of entries) {
-      parts.push('<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + ' (' + n + ')</option>');
+      const active = state.dim === v ? ' is-active' : '';
+      chips.push(`<button class="chip${active}" type="button" data-dim="${escapeHtml(v)}" data-group="${escapeHtml(multiDim ? dimName : '')}">`
+        + escapeHtml(v) + '<span class="chip-n">' + n + '</span></button>');
     }
-    parts.push('</optgroup>');
   }
-  els.dim.innerHTML = parts.join('');
-  els.dim.value = state.dim;   // 重建后恢复选中项
+
+  if (!chips.length) {
+    if (els.dimWrap) els.dimWrap.hidden = true;
+    els.dim.innerHTML = '';
+    state.dim = '全部';
+    return;
+  }
+
+  const allActive = state.dim === '全部' ? ' is-active' : '';
+  els.dim.innerHTML = `<button class="chip chip-all${allActive}" type="button" data-dim="全部">全部`
+    + '<span class="chip-n">' + scopeCount + '</span></button>' + chips.join('');
   if (els.dimWrap) els.dimWrap.hidden = false;
 }
 /** 品牌下拉：仅当页面提供容器且数据里确有 brand 时才渲染（多品牌模块用） */
@@ -172,21 +231,46 @@ function renderBrands(){
     .map(b => `<option value="${escapeHtml(b)}">${b === '全部' ? '全部品牌' : escapeHtml(b)}</option>`).join('');
   if (els.brandWrap) els.brandWrap.hidden = false;
 }
+/**
+ * 商品卡片（电商风格）
+ *
+ * 与旧目录式的区别：
+ *   · 图片占卡片主体（接近正方形），是视觉第一要素
+ *   · 标题 2 行截断，不再放长简介（简介移到详情弹窗）
+ *   · 价格用红橙色、数字放大、货币符号缩小 —— 电商通行的价格强调方式
+ *   · 底部用小标签展示分类/材质，代替原来的灰色长文案
+ *   · 整张卡片可点（article 上带 data-index），不只图片区
+ */
 function card(product, index){
-  const brandLine = product.brand ? `<p class="catalog-brand">${escapeHtml(product.brand)}</p>` : '';
-  const variantLine = product.variantNote ? `<p class="catalog-variant">${escapeHtml(product.variantNote)}</p>` : '';
-  return `<article class="catalog-card">
-    <button class="catalog-image" type="button" data-index="${index}" aria-label="查看 ${escapeHtml(product.title)} 详情">
+  const p = priceParts(product);
+  const brand = product.brand ? `<span class="card-brand">${escapeHtml(product.brand)}</span>` : '';
+
+  // 分类标签：优先显示二级（更具体），最多两个，避免卡片过高
+  const tags = [];
+  const dims = product.dimensions && typeof product.dimensions === 'object' ? product.dimensions : null;
+  if (dims) {
+    const vals = [];
+    for (const k of Object.keys(dims)) {
+      const arr = Array.isArray(dims[k]) ? dims[k] : (dims[k] ? [dims[k]] : []);
+      for (const v of arr) if (v) vals.push(v);
+    }
+    for (const v of vals.slice(0, 2)) tags.push(v);
+  }
+  if (!tags.length && product.type) tags.push(product.type);
+
+  const tagHtml = tags.map((t) => `<span class="card-tag">${escapeHtml(t)}</span>`).join('');
+  const flag = product.type ? `<span class="card-flag">${escapeHtml(product.type)}</span>` : '';
+
+  return `<article class="catalog-card" data-index="${index}">
+    <div class="card-media">
       <img loading="lazy" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" />
-    </button>
-    <div class="catalog-body">
-      ${brandLine}
-      <p class="catalog-type">${escapeHtml(product.type)}</p>
-      <h3>${escapeHtml(product.title)}</h3>
-      <p class="catalog-price">${escapeHtml(product.price)}</p>
-      ${variantLine}
-      <p class="catalog-desc">${escapeHtml(product.desc || '暂无简介')}</p>
-      <button class="catalog-link" type="button" data-index="${index}">查看商品详情</button>
+      ${flag}
+    </div>
+    <div class="card-info">
+      ${brand}
+      <h3 class="card-title">${escapeHtml(product.title)}</h3>
+      <p class="card-price"><span class="cur">${escapeHtml(p.cur || '¥')}</span><strong>${escapeHtml(p.amount)}</strong><span class="tax">${escapeHtml(p.suffix)}</span></p>
+      <div class="card-tags">${tagHtml}</div>
     </div>
   </article>`;
 }
@@ -197,7 +281,9 @@ function render(reset=true){
   const visible = list.slice(0, nextShown);
   els.grid.innerHTML = visible.map(product => card(product, window.PRODUCTS.indexOf(product))).join('') || '<p class="empty">没有找到匹配商品。</p>';
   state.shown = nextShown;
-  els.count.textContent = `共 ${list.length} 个商品，已显示 ${visible.length} 个`;
+  els.count.textContent = list.length
+    ? `共 ${list.length} 件商品${visible.length < list.length ? '，已显示 ' + visible.length + ' 件' : ''}`
+    : '没有匹配的商品';
   els.more.hidden = state.shown >= list.length;
 }
 function openProduct(index){
@@ -225,20 +311,81 @@ function openProduct(index){
 function closeProduct(){ els.modal.setAttribute('hidden',''); document.body.classList.remove('modal-open'); }
 els.search.addEventListener('input', e => { state.keyword = e.target.value; render(true); });
 /**
- * 一级品类变化 → **重建二级下拉**（联动）。
- * 二级选项只保留该一级下存在的子分类，件数也按该一级重新统计；
+ * 一级分类切换（横向标签页）→ **重建二级筛选条**（联动）。
+ * 二级只保留该一级下存在的子分类，件数也按该一级重新统计；
  * 若原先选的二级在新一级下不存在，renderDims() 会把它重置为「全部」。
  */
-els.type.addEventListener('change', e => {
-  state.type = e.target.value;
-  renderDims();
-  render(true);
-});
+if (els.tabs) {
+  els.tabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    const next = btn.dataset.type || '全部';
+    if (next === state.type) return;
+    state.type = next;
+    renderTypes();     // 更新选中态
+    renderDims();      // 联动重建二级
+    render(true);
+  });
+}
+if (els.sort) els.sort.addEventListener('change', (e) => { state.sort = e.target.value; render(true); });
 if (els.brand) els.brand.addEventListener('change', e => { state.brand = e.target.value; render(true); });
-if (els.dim) els.dim.addEventListener('change', e => { state.dim = e.target.value || '全部'; render(true); });
+/**
+ * 二级分类是筛选条（按钮）而不是下拉：
+ * 点同一个 chip 再点一次可以取消，等于「全部」。
+ */
+if (els.dim) {
+  els.dim.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const v = chip.dataset.dim || '全部';
+    state.dim = (v === '全部' || v === state.dim) ? '全部' : v;
+    renderDims();      // 更新选中态
+    render(true);
+  });
+}
 els.more.addEventListener('click', () => render(false));
 els.grid.addEventListener('click', e => { const btn = e.target.closest('[data-index]'); if (btn) openProduct(Number(btn.dataset.index)); });
 els.modalClose.addEventListener('click', closeProduct);
 els.modal.addEventListener('click', e => { if (e.target === els.modal) closeProduct(); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && !els.modal.hasAttribute('hidden')) closeProduct(); });
+/**
+ * 把顶栏实际高度写进 CSS 变量 --header-h。
+ * 筛选工具栏是吸顶的，它的 top 必须等于顶栏高度，否则会钻到顶栏下面被遮一截。
+ * 顶栏高度随断点变化（桌面一行约 108px，手机两行约 127px），写死任何一个都会错，
+ * 所以运行时实测。
+ */
+function syncHeaderHeight(){
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+  const h = Math.round(header.getBoundingClientRect().height);
+  if (h > 0) document.documentElement.style.setProperty('--header-h', h + 'px');
+}
+syncHeaderHeight();
+window.addEventListener('resize', syncHeaderHeight);
+if (typeof ResizeObserver === 'function') {
+  const header = document.querySelector('.site-header');
+  if (header) new ResizeObserver(syncHeaderHeight).observe(header);
+}
+
+/**
+ * 筛选工具栏吸顶时加 .is-stuck（投影 + 手机上隐藏计数行，把高度让给商品）。
+ * 判定方式：工具栏的视口位置已经贴到它的 sticky top 值。
+ * sticky top 随断点不同（桌面=顶栏高，手机=0），所以从计算样式里读，不写死。
+ */
+function watchToolbarStuck(){
+  const bar = document.querySelector('.catalog-toolbar');
+  if (!bar) return;
+  let raf = null;
+  const check = () => {
+    raf = null;
+    const top = parseFloat(getComputedStyle(bar).top) || 0;
+    bar.classList.toggle('is-stuck', bar.getBoundingClientRect().top <= top + 0.5);
+  };
+  const onScroll = () => { if (!raf) raf = requestAnimationFrame(check); };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', check);
+  check();
+}
+watchToolbarStuck();
+
 renderTypes(); renderBrands(); renderDims(); render(true);
