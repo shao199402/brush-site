@@ -234,6 +234,141 @@
     try { localStorage.removeItem(ADDR_KEY); } catch { /* 忽略 */ }
   }
 
+  /* ───────────────── 表单校验 ─────────────────
+   * 规则集中在这里，前端与数据库（submit_order）保持一致：
+   *   姓名   ≥ 1 个字
+   *   手机号 中国大陆 11 位（1 开头，第二位 3-9）
+   *   地址   ≥ 5 个字
+   */
+
+  /** 手机号：允许用户输入时带空格/横线，校验前先清掉 */
+  const normalizePhone = (v) => String(v || '').replace(/[\s-]/g, '');
+
+  /**
+   * 返回字段问题：{ msg, soft }
+   *   soft = true 表示「还没输完」，例如手机号只输了 5 位。
+   *   这类提示在输入过程中先不显示，避免边打字边报红；
+   *   一旦失焦（blur）就不再客气，直接提示。
+   */
+  function fieldIssue(form, name) {
+    const el = form.querySelector('[name=' + name + ']');
+    const v = el ? String(el.value) : '';
+
+    if (name === 'name') {
+      if (!v.trim()) return { msg: '请填写收货人姓名', soft: false };
+      return { msg: '', soft: false };
+    }
+
+    if (name === 'phone') {
+      const p = normalizePhone(v);
+      if (!p) return { msg: '请填写手机号', soft: false };
+      if (!/^\d+$/.test(p)) return { msg: '手机号只能是数字', soft: false };
+      if (p.length < 11) return { msg: '手机号应为 11 位，还差 ' + (11 - p.length) + ' 位', soft: true };
+      if (p.length > 11) return { msg: '手机号多了 ' + (p.length - 11) + ' 位', soft: false };
+      if (!/^1[3-9]\d{9}$/.test(p)) return { msg: '手机号格式不对，应以 1 开头（第二位 3-9）', soft: false };
+      return { msg: '', soft: false };
+    }
+
+    if (name === 'address') {
+      const t = v.trim();
+      if (!t) return { msg: '请填写收货地址', soft: false };
+      if (t.length < 5) return { msg: '地址太短，请填写省市区和详细地址', soft: true };
+      return { msg: '', soft: false };
+    }
+
+    return { msg: '', soft: false };
+  }
+
+  /** 只判断是否合格，不动 DOM（按钮状态用这个） */
+  function isFieldValid(form, name) {
+    return !fieldIssue(form, name).msg;
+  }
+
+  /** 渲染单个字段的提示状态 */
+  function renderField(form, name, { force = false } = {}) {
+    const input = form.querySelector('[name=' + name + ']');
+    const errBox = form.querySelector('.field-err[data-for=' + name + ']');
+    const { msg, soft } = fieldIssue(form, name);
+
+    // 失焦过（touched）或者不是「没输完」类型，才显示
+    const touched = input && input.dataset.touched === '1';
+    const show = Boolean(msg) && (force || touched || !soft);
+
+    if (input) input.classList.toggle('is-invalid', show);
+    if (errBox) {
+      errBox.textContent = show ? msg : '';
+      errBox.classList.toggle('is-on', show);
+    }
+    return !msg;
+  }
+
+  /** 提交按钮可用状态：只读判断，绝不改动字段的提示状态 */
+  function updateSubmitState(form) {
+    const btn = form.querySelector('button[type=submit]');
+    const ok = ['name', 'phone', 'address'].every((n) => isFieldValid(form, n));
+    if (btn) {
+      btn.disabled = !ok;
+      btn.classList.toggle('is-disabled', !ok);
+    }
+    return ok;
+  }
+
+  /**
+   * 提交前全量校验：所有字段强制显示提示。
+   * 返回第一个出问题的字段名（用于聚焦）。
+   */
+  function validateAllForSubmit(form) {
+    let firstBad = '';
+    ['name', 'phone', 'address'].forEach((n) => {
+      const ok = renderField(form, n, { force: true });
+      if (!ok && !firstBad) firstBad = n;
+    });
+    updateSubmitState(form);
+    return firstBad;
+  }
+
+  function bindFieldValidation(form) {
+    const FIELDS = ['name', 'phone', 'address'];
+    const timers = {};
+
+    FIELDS.forEach((name) => {
+      const input = form.querySelector('[name=' + name + ']');
+      if (!input) return;
+
+      // 手机号：只允许数字；粘贴进来的空格、横线自动清掉
+      if (name === 'phone') {
+        input.addEventListener('input', () => {
+          const cleaned = normalizePhone(input.value).slice(0, 11);
+          if (cleaned !== input.value) {
+            const pos = input.selectionStart;
+            input.value = cleaned;
+            try { input.setSelectionRange(pos, pos); } catch { /* 忽略 */ }
+          }
+        });
+      }
+
+      // 输入过程：300ms 防抖，只提示「硬错误」，不吵
+      input.addEventListener('input', () => {
+        clearTimeout(timers[name]);
+        timers[name] = setTimeout(() => {
+          renderField(form, name, { force: false });
+          updateSubmitState(form);
+        }, 300);
+      });
+
+      // 失焦：标记 touched，此后所有问题都直接显示
+      input.addEventListener('blur', () => {
+        clearTimeout(timers[name]);
+        input.dataset.touched = '1';
+        renderField(form, name, { force: false });
+        updateSubmitState(form);
+      });
+    });
+
+    // 进来先算一次（历史地址自动填入时按钮该是可点的）
+    updateSubmitState(form);
+  }
+
   /** 下单表单 */
   function renderCheckoutForm() {
     const e = ensureDom();
@@ -265,17 +400,38 @@
       <div class="checkout-summary">${summary}</div>
       ${picker}
       <form class="checkout-form" id="checkoutForm" novalidate>
-        <label>收货人<input name="name" required placeholder="姓名" autocomplete="name" value="${esc(last?.name)}" /></label>
-        <label>联系电话<input name="phone" required placeholder="手机号 / 微信" inputmode="tel" autocomplete="tel" value="${esc(last?.phone)}" /></label>
-        <label>收货地址<textarea name="address" rows="2" required placeholder="省 / 市 / 区 / 详细地址" autocomplete="street-address">${esc(last?.address)}</textarea></label>
-        <label>备注<textarea name="note" rows="2" placeholder="色号、刻字、发票等特殊要求（选填）"></textarea></label>
+        <label>收货人
+          <input name="name" required placeholder="姓名" autocomplete="name" value="${esc(last?.name)}" />
+          <p class="field-err" data-for="name"></p>
+        </label>
+        <label>手机号
+          <input name="phone" required placeholder="11 位手机号" inputmode="numeric" maxlength="11"
+                 autocomplete="tel" value="${esc(last?.phone)}" />
+          <p class="field-err" data-for="phone"></p>
+        </label>
+        <label>收货地址
+          <textarea name="address" rows="2" required placeholder="省 / 市 / 区 / 详细地址" autocomplete="street-address">${esc(last?.address)}</textarea>
+          <p class="field-err" data-for="address"></p>
+        </label>
+        <label>备注
+          <textarea name="note" rows="2" placeholder="色号、刻字、发票等特殊要求（选填）"></textarea>
+        </label>
         <label class="remember-row"><input type="checkbox" name="remember" ${last ? 'checked' : 'checked'} /> 记住收货信息，下次自动填入（仅保存在本机浏览器）</label>
         <p class="checkout-tip">提交后由客服核对库存与运费，再与您联系确认付款方式。</p>
-        <button type="submit" class="btn cart-checkout">提交订单</button>
+        <button type="submit" class="btn cart-checkout" disabled>提交订单</button>
         <button type="button" class="cart-back js-cart-back">返回购物车</button>
       </form>`;
 
     if (e.foot) e.foot.innerHTML = '';
+
+    /* ── 边填边校验 ──
+     * 所有规则都前置到输入阶段，不等提交才报错：
+     *   input  → 300ms 防抖后校验（不打断输入）
+     *   blur   → 立即校验（离开就给出结论）
+     *   任何变化 → 重新计算提交按钮的可用状态
+     */
+    const form = e.body.querySelector('#checkoutForm');
+    if (form) bindFieldValidation(form);
 
     // 选择历史地址 → 填入表单
     const sel = e.body.querySelector('#savedAddrSelect');
@@ -290,6 +446,12 @@
         f.querySelector('[name=phone]').value = a.phone || '';
         f.querySelector('[name=address]').value = a.address || '';
         sel.value = '';
+        // 自动填入后立刻检查一遍，让按钮状态跟上（不显示红字，避免莫名其妙）
+        ['name', 'phone', 'address'].forEach((n) => {
+          const el = f.querySelector('[name=' + n + ']');
+          if (el) el.dataset.touched = '';
+        });
+        updateSubmitState(f);
       });
     }
 
@@ -771,11 +933,25 @@
       const form = ev.target.closest('#checkoutForm');
       if (!form) return;
       ev.preventDefault();
-      const data = Object.fromEntries(new FormData(form).entries());
-      if (!data.name || !data.phone || !data.address) {
-        form.querySelector('[name="name"]').reportValidity?.();
+
+      /*
+       * 提交前做一次「全量 + 强制显示」校验：
+       * 正常情况下按钮在填错时是禁用的，走不到这里；
+       * 但用户可能用回车提交，所以这里仍要兜一层，
+       * 并且把第一个不合格的字段聚焦过去。
+       */
+      const bad = validateAllForSubmit(form);
+      if (bad) {
+        const el = form.querySelector('[name=' + bad + ']');
+        if (el) {
+          el.focus();
+          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
         return;
       }
+
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.phone = normalizePhone(data.phone);   // 去掉可能混入的空格/横线
       const btn = form.querySelector('[type=submit]');
       if (btn) { btn.disabled = true; btn.textContent = '提交中…'; }
 

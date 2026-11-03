@@ -2060,6 +2060,37 @@ body.modal-open {
 .checkout-form input:focus,
 .checkout-form textarea:focus { outline: none; border-color: var(--ink); }
 
+/* ── 边填边校验 ── */
+.checkout-form input.is-invalid,
+.checkout-form textarea.is-invalid {
+  border-color: #b3261e;
+  background: #fff8f7;
+}
+
+.checkout-form input.is-invalid:focus,
+.checkout-form textarea.is-invalid:focus { border-color: #b3261e; }
+
+.checkout-form .field-err {
+  margin: 5px 0 0;
+  color: #b3261e;
+  font-size: 11.5px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  min-height: 0;
+}
+
+.checkout-form .field-err:not(.is-on) { display: none; }
+
+/* 不可提交时用灰色，比半透明红色更容易看懂「现在还不能点」 */
+.cart-checkout.is-disabled,
+.cart-checkout:disabled {
+  background: #cdc5b8;
+  color: #fff;
+  opacity: 1;
+  cursor: not-allowed;
+  filter: none;
+}
+
 .checkout-tip {
   margin: 4px 0 12px;
   color: var(--muted);
