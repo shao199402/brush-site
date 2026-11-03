@@ -415,6 +415,11 @@
           Authorization: 'Bearer ' + anon,
         },
         body: JSON.stringify({ payload }),
+        /*
+         * 必须带超时：之前没有超时，网络卡住时按钮会永远停在「提交中…」，
+         * 客户既不知道成功也不知道失败。
+         */
+        signal: AbortSignal.timeout(25000),
       });
       if (!res.ok) {
         const detail = await res.text().catch(() => '');
@@ -422,7 +427,12 @@
       }
       const j = await res.json().catch(() => null);
       // 函数返回 { ok: bool, error?: string, order_no?: string }
-      if (j && j.ok === false) throw new Error(j.error || '提交被拒绝');
+      if (j && j.ok === false) {
+        // 打上 rejected 标记：这是「服务器拒绝」，不是网络故障
+        const e = new Error(j.error || '提交被拒绝');
+        e.rejected = true;
+        throw e;
+      }
       return true;
     }
 
@@ -552,8 +562,16 @@
   }
 
   async function copyText(text) {
+    /*
+     * 剪贴板 API 在某些环境（无用户手势、无权限、headless）里会一直挂着不返回。
+     * 之前直接 await，导致整个提交流程卡死在「提交中…」。
+     * 这里加 1.5 秒上限，超时就退回复制备用方案，绝不让 UI 卡住。
+     */
     try {
-      await navigator.clipboard.writeText(text);
+      await Promise.race([
+        navigator.clipboard.writeText(text),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('clipboard timeout')), 1500)),
+      ]);
       return true;
     } catch {
       // clipboard API 在非 https 或旧浏览器不可用，退回 textarea 方案
@@ -569,6 +587,15 @@
         return true;
       } catch { return false; }
     }
+  }
+
+  /** 模块级 HTML 转义（局部作用域的 esc 不能跨函数用） */
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   function showResult(orderNo, text, submitted) {
@@ -588,6 +615,43 @@
 
     // 提交成功后清空购物车
     if (submitted) { items = []; saveCart(items); renderBadge(); }
+  }
+
+  /**
+   * 服务器明确拒绝时的提示。
+   * 关键点：不假装成功、不清空购物车、把表单还回去让客户改完重提。
+   *
+   * ⚠ 注意不要用 esc()：那个是 renderCheckoutForm() 里的局部 const，
+   *   在这里引用会抛 ReferenceError，界面会永远停在「提交中…」。
+   *   所以这里用模块级的 escHtml()。
+   */
+  function showRejected(message, data, form) {
+    const e = ensureDom();
+    const { orderNo, text } = buildOrderText(data);
+    e.body.innerHTML = `
+      <div class="cart-done cart-rejected">
+        <p class="cart-done-title">订单没有提交成功</p>
+        <p class="cart-done-tip" style="color:#b3261e">${escHtml(message)}</p>
+        <p class="cart-done-no">已生成订单号：<strong>${orderNo}</strong>（尚未入库）</p>
+        <p class="cart-done-tip">请检查上面的信息后重新提交；也可以直接复制下面内容发给客服。</p>
+        <textarea class="cart-done-text" rows="8" readonly>${text.replace(/</g, '&lt;')}</textarea>
+        <button type="button" class="btn cart-checkout js-retry">返回修改并重试</button>
+        <button type="button" class="btn cart-clear js-copy-again">复制订单内容</button>
+      </div>`;
+    e.body.querySelector('.js-copy-again').addEventListener('click', () => copyText(text));
+    e.body.querySelector('.js-retry').addEventListener('click', () => {
+      renderCheckoutForm();
+      // 把刚填的内容放回去，别让客户重打一遍
+      const f = e.body.querySelector('#checkoutForm');
+      if (f) {
+        f.querySelector('[name=name]').value = data.name || '';
+        f.querySelector('[name=phone]').value = data.phone || '';
+        f.querySelector('[name=address]').value = data.address || '';
+        if (f.querySelector('[name=note]')) f.querySelector('[name=note]').value = data.note || '';
+        f.querySelector('[name=address]').focus();
+      }
+    });
+    if (e.foot) e.foot.innerHTML = '';
   }
 
   /* ───────────────── 交互 ───────────────── */
@@ -728,7 +792,18 @@
       try {
         await submitOrder(data);
       } catch (err) {
-        // 网络失败：退回复制，不让用户白填
+        /*
+         * 区分两类失败，之前不区分导致严重问题：
+         *   · 服务器明确拒绝（地址太短、频率限制、订单号重复…）
+         *     → 必须把原因告诉客户，让 TA 改完重提；
+         *       绝不能显示「订单已生成」——客户会以为下单成功，实际没进库。
+         *   · 网络不通（DNS/断网/CORS）
+         *     → 才退回复制订单文本，让客户手动发给客服。
+         */
+        if (err && err.rejected) {
+          showRejected(err.message, data, form);
+          return;
+        }
         const { orderNo, text } = buildOrderText(data);
         await copyText(text);
         showResult(orderNo, text, false);
