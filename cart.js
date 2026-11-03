@@ -241,8 +241,20 @@
    *   地址   ≥ 5 个字
    */
 
-  /** 手机号：允许用户输入时带空格/横线，校验前先清掉 */
-  const normalizePhone = (v) => String(v || '').replace(/[\s-]/g, '');
+  /**
+   * 联系方式：手机号 或 微信号，二选一。
+   *
+   * 归一化规则：
+   *   · 先去掉所有空格
+   *   · 如果去掉横线后是纯数字 → 当手机号，横线一并去掉（138-0013-8000 → 13800138000）
+   *   · 否则当微信号，**保留横线**（微信号允许包含 -）
+   */
+  const normalizePhone = (v) => {
+    const noSpace = String(v || '').trim().replace(/\s+/g, '');
+    const digits = noSpace.replace(/-/g, '');
+    if (/^\d+$/.test(digits)) return digits;
+    return noSpace;
+  };
 
   /**
    * 返回字段问题：{ msg, soft }
@@ -261,11 +273,29 @@
 
     if (name === 'phone') {
       const p = normalizePhone(v);
-      if (!p) return { msg: '请填写手机号', soft: false };
-      if (!/^\d+$/.test(p)) return { msg: '手机号只能是数字', soft: false };
-      if (p.length < 11) return { msg: '手机号应为 11 位，还差 ' + (11 - p.length) + ' 位', soft: true };
-      if (p.length > 11) return { msg: '手机号多了 ' + (p.length - 11) + ' 位', soft: false };
-      if (!/^1[3-9]\d{9}$/.test(p)) return { msg: '手机号格式不对，应以 1 开头（第二位 3-9）', soft: false };
+      if (!p) return { msg: '请填写手机号或微信号', soft: false };
+
+      // 纯数字 → 必须是中国大陆手机号
+      if (/^\d+$/.test(p)) {
+        if (p.length < 11) return { msg: '手机号应为 11 位，还差 ' + (11 - p.length) + ' 位', soft: true };
+        if (p.length > 11) return { msg: '手机号多了 ' + (p.length - 11) + ' 位', soft: false };
+        if (!/^1[3-9]\d{9}$/.test(p)) return { msg: '手机号格式不对，应以 1 开头（第二位 3-9）', soft: false };
+        return { msg: '', soft: false };
+      }
+
+      // 含字母等 → 按微信号校验（官方规则：字母开头，6-20 位，可用字母数字 _ -）
+      if (!/^[A-Za-z]/.test(p)) {
+        return { msg: '微信号要用字母开头；手机号请填 11 位数字', soft: false };
+      }
+      if (p.length < 6) {
+        return { msg: '微信号至少 6 位，还差 ' + (6 - p.length) + ' 位', soft: true };
+      }
+      if (p.length > 20) {
+        return { msg: '微信号最多 20 位，现在多了 ' + (p.length - 20) + ' 位', soft: false };
+      }
+      if (!/^[A-Za-z][A-Za-z0-9_-]*$/.test(p)) {
+        return { msg: '微信号只能用字母、数字、下划线、横线', soft: false };
+      }
       return { msg: '', soft: false };
     }
 
@@ -335,10 +365,10 @@
       const input = form.querySelector('[name=' + name + ']');
       if (!input) return;
 
-      // 手机号：只允许数字；粘贴进来的空格、横线自动清掉
+      // 联系方式：手机号和微信号都可能填，只去掉空格（横线可能属于微信号，保留）
       if (name === 'phone') {
         input.addEventListener('input', () => {
-          const cleaned = normalizePhone(input.value).slice(0, 11);
+          const cleaned = input.value.replace(/\s+/g, '').slice(0, 20);
           if (cleaned !== input.value) {
             const pos = input.selectionStart;
             input.value = cleaned;
@@ -404,8 +434,8 @@
           <input name="name" required placeholder="姓名" autocomplete="name" value="${esc(last?.name)}" />
           <p class="field-err" data-for="name"></p>
         </label>
-        <label>手机号
-          <input name="phone" required placeholder="11 位手机号" inputmode="numeric" maxlength="11"
+        <label>手机号 / 微信号
+          <input name="phone" required placeholder="11 位手机号，或微信号" inputmode="text" maxlength="20"
                  autocomplete="tel" value="${esc(last?.phone)}" />
           <p class="field-err" data-for="phone"></p>
         </label>
