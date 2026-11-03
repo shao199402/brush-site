@@ -1,0 +1,20 @@
+{
+  "_说明": "订单邮件提醒的配置。填好后不要提交到 Git（data/mail-config.json 已被 .gitignore 排除）",
+
+  "supabaseUrl": "https://dlfjzbkqevmtnzsluipl.supabase.co",
+  "supabaseAnonKey": "sb_publishable_4DCIlPnWS1brJ89cyqdkcw_34-vwLv8",
+
+  "_admin说明": "用后台登录的邮箱和密码，脚本靠它读取订单（匿名身份读不到任何订单）",
+  "adminEmail": "13522504535@163.com",
+  "adminPassword": "123456",
+
+  "_smtp说明": "163 邮箱：smtp.163.com 端口 465。smtpPass 填【授权码】不是登录密码。QQ 邮箱：smtp.qq.com 端口 465",
+  "smtpHost": "smtp.163.com",
+  "smtpPort": 465,
+  "smtpUser": "13522504535@163.com",
+  "smtpPass": "在这里填16位授权码",
+
+  "_收件说明": "收件人，可以和发件人相同；多个用英文逗号分隔",
+  "mailTo": "13522504535@163.com",
+  "mailFrom": "13522504535@163.com"
+}

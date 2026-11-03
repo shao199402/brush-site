@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>订单后台 · 笔刷商品目录</title>
+  <link rel="icon" href="./favicon.svg" />
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --ink: #17151a; --muted: #7a736a; --line: #e3ddd2; --paper: #f8f5ef;
+      --white: #fffdf9; --price: #e03115; --ok: #1f7a4d; --warn: #b8791c;
+    }
+    body {
+      margin: 0; background: var(--paper); color: var(--ink);
+      font-family: "Noto Serif SC", "Songti SC", Georgia, serif;
+      line-height: 1.6;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 18px 60px; }
+    h1 { font-size: 22px; font-weight: 400; letter-spacing: .06em; margin: 0 0 6px; }
+    .sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+
+    /* 登录 */
+    .login { max-width: 340px; margin: 12vh auto 0; padding: 26px; background: var(--white); border: 1px solid var(--line); border-radius: 10px; }
+    .login h1 { font-size: 18px; text-align: center; margin-bottom: 18px; }
+    .login label { display: block; margin-bottom: 12px; font-size: 12px; color: var(--muted); }
+    .login input { display: block; width: 100%; margin-top: 5px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 16px; }
+    .login .showpw { display: flex; align-items: center; gap: 6px; margin: -4px 0 10px; font-size: 12px; }
+    .login .showpw input { width: auto; margin: 0; }
+    .login button { width: 100%; height: 42px; margin-top: 6px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+    .err { margin-top: 10px; color: var(--price); font-size: 12.5px; min-height: 18px; }
+
+    /* 工具条 */
+    .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+    .bar select, .bar input { height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); font: inherit; font-size: 13px; }
+    .bar input[type=search] { flex: 1 1 200px; min-width: 0; }
+    .bar button { height: 38px; padding: 0 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); font: inherit; font-size: 13px; cursor: pointer; }
+    .bar .grow { flex: 1 1 auto; }
+    .bar .daterange { display: inline-flex; align-items: center; gap: 6px; }
+    .bar .daterange input[type=date] { width: 148px; padding: 0 8px; }
+    .bar .daterange span { color: var(--muted); font-size: 12px; }
+    .bar button.mini { height: 30px; padding: 0 10px; font-size: 12px; }
+    .bar button.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .bar button.primary:hover { filter: brightness(1.15); }
+    .stat { color: var(--muted); font-size: 13px; }
+
+    /* 主标签栏 */
+    .maintabs { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+    .maintabs .grow { flex: 1 1 auto; }
+    .mtab {
+      padding: 8px 18px; border: 1px solid transparent; border-radius: 8px;
+      background: none; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer;
+    }
+    .mtab:hover { color: var(--ink); }
+    .mtab.is-active { background: var(--ink); color: #fff; }
+    .rolebadge { padding: 3px 10px; border-radius: 999px; background: #f3eee5; color: #8a6a3a; font-size: 11.5px; }
+    .rolebadge.admin { background: #e8f3ec; color: #1f7a4d; }
+    .maintabs button.mini { height: 30px; padding: 0 12px; font-size: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); }
+
+    /* 人员管理 */
+    .staffform { padding: 16px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); }
+    .sf-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+    .sf-row label { flex: 1 1 220px; font-size: 12px; color: var(--muted); }
+    .sf-row input, .sf-row select {
+      display: block; width: 100%; margin-top: 5px; height: 38px; padding: 0 10px;
+      border: 1px solid var(--line); border-radius: 8px; background: var(--white);
+      font: inherit; font-size: 14px; color: var(--ink);
+    }
+    .staffform button.primary { height: 38px; padding: 0 20px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font: inherit; font-size: 13.5px; cursor: pointer; }
+    .sf-msg { margin-left: 12px; font-size: 12.5px; }
+    .sf-msg.ok { color: var(--ok); }
+    .sf-msg.err { color: var(--price); }
+    #staffTable select { height: 30px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 12.5px; background: var(--white); }
+    #staffTable .op { border: 0; background: none; color: var(--price); font: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }
+    #staffTable .op.on { color: var(--muted); }
+    .self-tag { color: var(--muted); font-size: 11px; margin-left: 6px; }
+
+    /* 状态分栏 */
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .stab {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px;
+      background: var(--white); color: var(--ink); font: inherit; font-size: 13px;
+      cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+    }
+    .stab:hover { border-color: rgba(23,21,26,.3); }
+    .stab.is-active { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .stab-n {
+      min-width: 20px; padding: 0 6px; border-radius: 999px;
+      background: #f0ebe2; color: #6b6357; font-size: 11.5px; line-height: 18px; text-align: center;
+    }
+    .stab.is-active .stab-n { background: rgba(255,255,255,.22); color: #fff; }
+
+    /* 分页 */
+    .pager { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .pager .grow { flex: 1 1 auto; }
+    .pager-info { color: var(--muted); font-size: 12.5px; }
+    .pager select, .pager button {
+      height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--white); color: var(--ink); font: inherit; font-size: 12.5px; cursor: pointer;
+    }
+    .pager button:disabled { opacity: .4; cursor: default; }
+    .pager-pages { color: var(--muted); font-size: 12.5px; }
+    .pager-pages b { color: var(--ink); }
+
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; background: var(--white); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); font-size: 13px; vertical-align: top; }
+    th { background: #f3eee5; font-weight: 500; font-size: 12px; letter-spacing: .04em; color: var(--muted); white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    td.no { font-family: ui-monospace, Menlo, monospace; font-size: 12px; white-space: nowrap; }
+    td.amt { color: var(--price); white-space: nowrap; }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; border: 1px solid; }
+    .pill.pending   { color: var(--warn); border-color: #e8d3ae; background: #fdf6e8; }
+    .pill.paid      { color: #1c5fa8; border-color: #bcd4ee; background: #eef5fd; }
+    .pill.shipped   { color: #6a3fa0; border-color: #d6c7ee; background: #f4effc; }
+    .pill.done      { color: var(--ok); border-color: #b9dfca; background: #eef9f2; }
+    .pill.cancelled { color: #8a8378; border-color: #ddd6ca; background: #f3f0ea; }
+    select.status { height: 30px; padding: 0 8px; font-size: 12.5px; border: 1px solid var(--line); border-radius: 6px; background: var(--white); font-family: inherit; }
+    .detail { color: var(--muted); font-size: 12px; margin-top: 3px; white-space: pre-line; max-width: 320px; }
+    .empty { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 720px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr { border-bottom: 1px solid var(--line); padding: 10px 0; }
+      td { border: 0; padding: 4px 12px; }
+      td::before { content: attr(data-label) "："; color: var(--muted); font-size: 11.5px; }
+    }
+  
+    /* 商品链接 */
+    a.item-link { color: #1c5fa8; text-decoration: none; border-bottom: 1px dashed rgba(28,95,168,.4); }
+    a.item-link:hover { border-bottom-style: solid; }
+    .orig { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+    /* 订单里的商品条目 */
+    .oitem { margin-bottom: 5px; line-height: 1.5; }
+    .oitem:last-child { margin-bottom: 0; }
+    .item-cat {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: #f3eee5;
+      color: #8a6a3a;
+      font-size: 10.5px;
+      white-space: nowrap;
+      vertical-align: 1px;
+    }
+
+    /* 商品详情弹窗 */
+    .pmask { position: fixed; inset: 0; z-index: 90; background: rgba(20,18,16,.5); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .pmask[hidden] { display: none !important; }
+    .pbox { position: relative; width: min(760px, 100%); max-height: 86vh; overflow: auto; background: var(--white); border-radius: 12px; padding: 0; }
+    .pbox .pclose { position: absolute; top: 8px; right: 10px; width: 40px; height: 40px; border: 0; background: none; font-size: 24px; color: var(--muted); cursor: pointer; z-index: 2; }
+    .pgrid { display: grid; grid-template-columns: minmax(220px, .9fr) minmax(260px, 1.1fr); gap: 22px; padding: 22px; }
+    .pgallery { display: flex; flex-direction: column; gap: 10px; }
+    .pgallery img { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 8px; object-fit: contain; }
+    .pinfo h3 { margin: 0 0 6px; font-size: 18px; font-weight: 500; line-height: 1.4; }
+    .pcat { color: #8a6a3a; font-size: 12px; margin: 0 0 8px; }
+    .pprice { color: var(--price); font-size: 20px; font-weight: 600; margin: 0 0 12px; }
+    .pmeta { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+    .pdesc { font-size: 13px; line-height: 1.75; color: #333; }
+    .pdesc table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12.5px; }
+    .pdesc th, .pdesc td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+    .pdesc img { max-width: 100%; height: auto; }
+    .ploading { padding: 60px; text-align: center; color: var(--muted); font-size: 13px; }
+    @media (max-width: 640px) { .pgrid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- 登录 -->
+    <div class="login" id="loginView">
+      <h1>订单后台</h1>
+      <form id="loginForm">
+        <label>邮箱<input type="email" id="email" autocomplete="username" required /></label>
+        <label>密码<input type="password" id="password" autocomplete="off" required /></label>
+        <label class="showpw"><input type="checkbox" id="showPw" /> 显示密码</label>
+        <button type="submit">登录</button>
+        <p class="err" id="loginErr"></p>
+      </form>
+    </div>
+
+    <!-- 主视图 -->
+    <div id="listView" class="hidden">
+      <div class="maintabs" role="tablist">
+        <button type="button" class="mtab is-active" data-view="orders" role="tab" aria-selected="true">订单列表</button>
+        <button type="button" class="mtab" data-view="staff" id="tabStaff" role="tab" aria-selected="false" hidden>人员管理</button>
+        <span class="grow"></span>
+        <span class="rolebadge" id="roleBadge"></span>
+        <button type="button" id="logout" class="mini">退出</button>
+      </div>
+
+      <div id="viewOrders">
+      <h1>订单列表</h1>
+      <p class="sub" id="whoami"></p>
+
+      <div class="tabs" id="statusTabs" role="tablist" aria-label="按状态分栏"></div>
+
+      <div class="bar">
+        <input type="search" id="q" placeholder="搜索订单号 / 姓名 / 电话 / 地址" />
+        <span class="daterange">
+          <input type="date" id="fromDate" aria-label="开始日期" />
+          <span>至</span>
+          <input type="date" id="toDate" aria-label="结束日期" />
+          <button type="button" id="clearDate" class="mini">清除</button>
+        </span>
+        <button type="button" id="refresh">刷新</button>
+        <button type="button" id="export" class="primary">导出 Excel</button>
+        <button type="button" id="exportCsv" class="mini">CSV</button>
+      </div>
+
+      <p class="stat" id="stat"></p>
+      <table id="table">
+        <thead>
+          <tr>
+            <th>时间</th><th>订单号</th><th>收货信息</th><th>金额（人民币）</th><th>状态</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="empty hidden" id="empty">还没有订单。</p>
+
+      <div class="pager" id="pager">
+        <span class="pager-info" id="pagerInfo"></span>
+        <span class="grow"></span>
+        <select id="pageSize" aria-label="每页条数">
+          <option value="20">每页 20 条</option>
+          <option value="50">每页 50 条</option>
+          <option value="100">每页 100 条</option>
+        </select>
+        <button type="button" id="prevPage">上一页</button>
+        <span class="pager-pages" id="pagerPages"></span>
+        <button type="button" id="nextPage">下一页</button>
+      </div>
+      </div><!-- /viewOrders -->
+
+      <!-- 人员管理（仅系统管理员） -->
+      <div id="viewStaff" hidden>
+        <h1>人员管理</h1>
+        <p class="sub">新增的人员默认「只读」，只能查看订单列表，不能改状态、不能进本页。</p>
+
+        <div class="staffform">
+          <div class="sf-row">
+            <label>邮箱<input type="email" id="sfEmail" placeholder="name@example.com" autocomplete="off" /></label>
+            <label>姓名<input type="text" id="sfName" placeholder="张三" autocomplete="off" /></label>
+          </div>
+          <div class="sf-row">
+            <label>初始密码<input type="text" id="sfPassword" placeholder="至少 6 位" autocomplete="off" /></label>
+            <label>角色
+              <select id="sfRole">
+                <option value="viewer">只读（只能看订单列表）</option>
+                <option value="admin">系统管理员（全部权限）</option>
+              </select>
+            </label>
+          </div>
+          <button type="button" id="sfSubmit" class="primary">新增人员</button>
+          <span class="sf-msg" id="sfMsg"></span>
+        </div>
+
+        <table id="staffTable">
+          <thead>
+            <tr><th>邮箱</th><th>姓名</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+          </thead>
+          <tbody id="staffRows"></tbody>
+        </table>
+        <p class="empty hidden" id="staffEmpty">还没有其他人员。</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="./site-config.js"></script>
+  <script src="./xlsx-lite.js"></script>
+  <script>
+    /* 订单后台：直接用 Supabase Auth + REST，不引入 SDK */
+    const CFG = window.SITE_CONFIG || {};
+    const BASE = (CFG.supabaseUrl || '').replace(/\/+$/, '');
+    const ANON = CFG.supabaseAnonKey || '';
+    const TOKEN_KEY = 'brush-admin-token';
+
+    const STATUS_TEXT = { pending: '待确认', paid: '已付款', shipped: '已发货', done: '已完成', cancelled: '已取消' };
+    const CURRENCY_SIGN = { JPY: '￥', CNY: 'CN¥' };
+
+    const $ = (s) => document.querySelector(s);
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+    let dateFrom = '';        // YYYY-MM-DD
+    let dateTo = '';
+    let currentList = [];     // 当前筛选后的全部结果（不分页），导出用
+    let activeStatus = '';    // '' = 全部
+    let page = 1;
+    let pageSize = 20;
+
+    let token = localStorage.getItem(TOKEN_KEY) || '';
+    let refreshToken = localStorage.getItem(TOKEN_KEY + '-refresh') || '';
+    let orders = [];
+
+    /** 清掉登录态，回到登录页 */
+    function forceLogin(msg) {
+      token = '';
+      refreshToken = '';
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY + '-refresh');
+      $('#listView').classList.add('hidden');
+      $('#loginView').classList.remove('hidden');
+      if (msg) $('#loginErr').textContent = msg;
+    }
+
+    /** 用 refresh_token 换新的 access_token */
+    async function refreshSession() {
+      if (!refreshToken) throw new Error('没有 refresh token');
+      const res = await fetch(BASE + '/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: ANON },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error_description || j.msg || '续期失败');
+      token = j.access_token;
+      refreshToken = j.refresh_token || refreshToken;
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_KEY + '-refresh', refreshToken);
+    }
+
+    async function api(path, opts = {}) {
+      const res = await fetch(BASE + path, {
+        ...opts,
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: ANON,
+          Authorization: 'Bearer ' + (opts.token || token),
+          ...(opts.headers || {}),
+        },
+      });
+      const text = await res.text();
+      let json = null;
+      try { json = text ? JSON.parse(text) : null; } catch { /* 非 JSON */ }
+      if (!res.ok) {
+        const err = new Error((json && (json.message || json.error_description)) || ('HTTP ' + res.status));
+        err.status = res.status;
+        throw err;
+      }
+      return json;
+    }
+
+    async function login(email, password) {
+      const res = await fetch(BASE + '/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: ANON },
+        body: JSON.stringify({ email, password }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error_description || j.msg || '登录失败');
+      token = j.access_token;
+      refreshToken = j.refresh_token || '';
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_KEY + '-refresh', refreshToken);
+      localStorage.setItem('brush-admin-email', email);
+    }
+
+    /** 日期加一天（用于「含结束日」的区间查询） */
+    function nextDay(ymd) {
+      const d = new Date(ymd + 'T00:00:00');
+      d.setDate(d.getDate() + 1);
+      const p = (n) => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    }
+
+    /**
+     * 构造查询串。
+     * 日期按本地时区（UTC+8）换算成时间戳边界：
+     *   开始 → created_at >= 开始日 00:00:00+08:00
+     *   结束 → created_at <  结束日次日 00:00:00+08:00   （含结束当天）
+     * PostgREST 允许重复同名参数，两个 created_at 会按 AND 组合。
+     */
+    function buildQuery() {
+      const p = new URLSearchParams({ select: '*', order: 'created_at.desc', limit: '2000' });
+      if (dateFrom) p.append('created_at', 'gte.' + dateFrom + 'T00:00:00+08:00');
+      if (dateTo) p.append('created_at', 'lt.' + nextDay(dateTo) + 'T00:00:00+08:00');
+      return p.toString();
+    }
+
+    async function loadOrders() {
+      const params = { toString: () => buildQuery() };
+      try {
+        orders = await api('/rest/v1/orders?' + params.toString());
+      } catch (err) {
+        // 401 = 令牌过期，先试着续期，失败再回登录页
+        if (err.status === 401 || /JWT|token/i.test(err.message)) {
+          try {
+            await refreshSession();
+            orders = await api('/rest/v1/orders?' + params.toString());
+          } catch (e2) {
+            forceLogin('登录已过期，请重新登录');
+            throw new Error('登录已过期');
+          }
+        } else {
+          throw err;
+        }
+      }
+      render();
+    }
+
+    function money(order) {
+      // 优先用折算后的人民币总额；没有就退回分币种小计
+      if (order.total_cny != null) {
+        return '¥' + Number(order.total_cny).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      // 人民币折算上线前的旧订单没有 total_cny，主金额留空，原币小计在下方显示
+      return '—';
+    }
+
+    /** 原币小计（显示在金额下方作为参考） */
+    function originals(order) {
+      const s = order.subtotals || {};
+      const keys = Object.keys(s);
+      if (!keys.length) return '';
+      const txt = keys.map((c) => (CURRENCY_SIGN[c] || '') + Number(s[c]).toLocaleString('zh-CN')).join(' / ');
+      // 有 total_cny 时原币作为参考；没有时它就是唯一金额，不加「原币」标记
+      return order.total_cny != null ? txt : txt + '（未折算）';
+    }
+
+    /** 渲染状态分栏（带单数） */
+    function renderTabs() {
+      const counts = { '': orders.length };
+      orders.forEach((o) => { counts[o.status] = (counts[o.status] || 0) + 1; });
+      const tabs = [['', '全部'], ...Object.keys(STATUS_TEXT).map((k) => [k, STATUS_TEXT[k]])];
+      $('#statusTabs').innerHTML = tabs.map(([val, label]) => {
+        const n = counts[val] || 0;
+        return `<button type="button" class="stab${activeStatus === val ? ' is-active' : ''}" role="tab"
+                  aria-selected="${activeStatus === val}" data-status="${val}">${label}<span class="stab-n">${n}</span></button>`;
+      }).join('');
+    }
+
+    function render() {
+      const q = $('#q').value.trim().toLowerCase();
+
+      // 先按状态 + 搜索筛出全部（不受分页影响），导出就用这一份
+      const all = orders.filter((o) => {
+        if (activeStatus && o.status !== activeStatus) return false;
+        if (!q) return true;
+        return [o.order_no, o.customer_name, o.customer_phone, o.customer_address]
+          .join(' ').toLowerCase().includes(q);
+      });
+      currentList = all;
+
+      // 再切出当前页
+      const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
+      if (page > totalPages) page = totalPages;
+      if (page < 1) page = 1;
+      const start = (page - 1) * pageSize;
+      const list = all.slice(start, start + pageSize);
+
+      renderTabs();
+
+      $('#stat').textContent = '共 ' + orders.length + ' 单'
+        + (all.length !== orders.length ? '，当前筛选 ' + all.length + ' 单' : '')
+        + (dateFrom || dateTo ? '（日期 ' + (dateFrom || '最早') + ' ~ ' + (dateTo || '最新') + '）' : '');
+      $('#empty').classList.toggle('hidden', all.length > 0);
+      $('#table').classList.toggle('hidden', all.length === 0);
+
+      // 分页条
+      const pager = $('#pager');
+      if (pager) {
+        pager.classList.toggle('hidden', all.length === 0);
+        $('#pagerInfo').textContent = all.length
+          ? '第 ' + (start + 1) + '–' + Math.min(start + pageSize, all.length) + ' 条，共 ' + all.length + ' 条'
+          : '';
+        $('#pagerPages').innerHTML = '第 <b>' + page + '</b> / ' + totalPages + ' 页';
+        $('#prevPage').disabled = page <= 1;
+        $('#nextPage').disabled = page >= totalPages;
+        const sel = $('#pageSize');
+        if (sel && String(pageSize) !== sel.value) sel.value = String(pageSize);
+      }
+
+      $('#rows').innerHTML = list.map((o) => {
+        const items = (o.items || []).map((i) => {
+          const label = `${esc(i.title)} ×${i.qty}（${(CURRENCY_SIGN[i.currency] || '') + i.amount}${i.cny != null ? ' ≈ ¥' + Number(i.cny).toFixed(2) : ''}）`;
+          // 带 page + handle 的商品才能点开详情
+          const main = (i.page && i.handle)
+            ? `<a href="#" class="item-link" data-page="${esc(i.page)}" data-handle="${esc(i.handle)}">${label}</a>`
+            : label;
+          // 一二级分类（旧订单没有这两个字段，不显示）
+          const cat = [i.level1, i.level2].map((x) => (x || '').trim()).filter(Boolean).join(' › ');
+          const catHtml = cat ? `<span class="item-cat">${esc(cat)}</span>` : '';
+          return `<div class="oitem">${main}${catHtml}</div>`;
+        }).join('');
+        const t = new Date(o.created_at);
+        const time = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' +
+          String(t.getDate()).padStart(2, '0') + ' ' + String(t.getHours()).padStart(2, '0') + ':' +
+          String(t.getMinutes()).padStart(2, '0');
+        return `<tr>
+          <td data-label="时间">${time}</td>
+          <td data-label="订单号" class="no">${esc(o.order_no)}</td>
+          <td data-label="收货信息">
+            <div>${esc(o.customer_name)} · ${esc(o.customer_phone)}</div>
+            <div class="detail">${esc(o.customer_address)}${o.customer_note ? '\n备注：' + esc(o.customer_note) : ''}</div>
+            <div class="detail">${items}</div>
+          </td>
+          <td data-label="金额" class="amt">${money(o)}<div class="orig">${originals(o)}</div></td>
+          <td data-label="状态">
+            <span class="pill ${o.status}">${STATUS_TEXT[o.status] || o.status}</span>
+            ${myRole === 'admin'
+              ? `<br /><select class="status" data-no="${esc(o.order_no)}">
+                   ${Object.keys(STATUS_TEXT).map((k) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${STATUS_TEXT[k]}</option>`).join('')}
+                 </select>`
+              : ''}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function updateStatus(orderNo, status) {
+      await api('/rest/v1/orders?order_no=eq.' + encodeURIComponent(orderNo), {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ status }),
+      });
+      const o = orders.find((x) => x.order_no === orderNo);
+      if (o) o.status = status;
+      render();
+    }
+
+    /* ── 导出用的公共数据准备 ── */
+    function exportData() {
+      const data = currentList.length ? currentList : orders;
+      if (!data.length) { alert('当前筛选条件下没有订单可导出'); return null; }
+      return data;
+    }
+
+    function rangeTag() {
+      return (dateFrom || dateTo)
+        ? (dateFrom || 'earliest') + '_' + (dateTo || 'latest')
+        : new Date().toISOString().slice(0, 10);
+    }
+
+    function downloadBlob(blob, filename) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+
+    const fmtTime = (s) => {
+      const d = new Date(s);
+      const p = (n) => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    };
+
+    /** 导出 Excel（.xlsx）：一行一个商品，订单公共字段用合并单元格 */
+    function exportXlsx() {
+      const data = exportData();
+      if (!data) return;
+      if (!window.XlsxLite) { alert('xlsx-lite.js 未加载，无法导出 Excel'); return; }
+
+      /* 前 8 列是订单级信息（一个订单只显示一次，跨行合并） */
+      const cols = [
+        { header: '时间', width: 17 },        // 0
+        { header: '订单号', width: 22 },      // 1
+        { header: '状态', width: 10 },        // 2
+        { header: '收货人', width: 13 },      // 3
+        { header: '电话', width: 14 },        // 4
+        { header: '地址', width: 32 },        // 5
+        { header: '备注', width: 20 },        // 6
+        { header: '人民币合计', width: 14 },  // 7
+        { header: '商品名', width: 44 },      // 8
+        { header: '一级分类', width: 15 },    // 9
+        { header: '二级分类', width: 15 },    // 10
+        { header: '数量', width: 7 },         // 11
+        { header: '原币单价', width: 12 },    // 12
+        { header: '币种', width: 8 },         // 13
+        { header: '折合人民币', width: 13 },  // 14
+        { header: '品牌页', width: 12 },      // 15
+      ];
+      const ORDER_COLS = 8;
+
+      const rows = [];
+      const merges = [];
+      let r = 2;                       // 第 1 行是表头
+
+      data.forEach((o) => {
+        const items = (Array.isArray(o.items) && o.items.length)
+          ? o.items
+          : [{ title: '（无商品明细）', qty: '', amount: '', currency: '', level1: '', level2: '', page: '' }];
+
+        const orderLevel = [
+          fmtTime(o.created_at),
+          o.order_no,
+          STATUS_TEXT[o.status] || o.status,
+          o.customer_name || '',
+          o.customer_phone || '',
+          o.customer_address || '',
+          o.customer_note || '',
+          o.total_cny != null ? Number(o.total_cny) : '',
+        ];
+
+        const start = r;
+        items.forEach((i, idx) => {
+          rows.push([
+            // 订单级字段只在第一行给值，其余留空——合并后由首格显示
+            ...orderLevel.map((v) => (idx === 0 ? v : '')),
+            i.title || '',
+            i.level1 || '',
+            i.level2 || '',
+            i.qty || 1,
+            Number(i.amount) || 0,
+            i.currency || '',
+            i.cny != null ? Number(i.cny) * (i.qty || 1) : '',
+            i.page || '',
+          ]);
+          r++;
+        });
+
+        const end = r - 1;
+        if (end > start) {             // 只有跨多行才合并
+          for (let c = 0; c < ORDER_COLS; c++) {
+            const L = window.XlsxLite.colName(c);
+            merges.push(L + start + ':' + L + end);
+          }
+        }
+      });
+
+      try {
+        const bytes = window.XlsxLite.build({
+          sheets: [{
+            name: '订单明细',
+            columns: cols,
+            rows,
+            merges,
+            mergedCols: Array.from({ length: ORDER_COLS }, (_, i) => i),
+            moneyCols: [7, 12, 14],
+            centerCols: [2, 11, 13],
+            selected: true,
+          }],
+        });
+        downloadBlob(new Blob([bytes], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }), 'orders-' + rangeTag() + '.xlsx');
+      } catch (e) {
+        alert('导出 Excel 失败：' + e.message);
+      }
+    }
+
+    /** 导出 CSV（保留，方便导入其它系统） */
+    function exportCsv() {
+      const data = exportData();
+      if (!data) return;
+      const head = ['时间', '订单号', '状态', '收货人', '电话', '地址', '备注', '商品', '小计', '人民币合计', '订单文本'];
+      const rows = data.map((o) => [
+        o.created_at, o.order_no, STATUS_TEXT[o.status] || o.status,
+        o.customer_name, o.customer_phone, o.customer_address, o.customer_note || '',
+        (o.items || []).map((i) => `${i.title}[${i.level1 || ''}${i.level2 ? '›' + i.level2 : ''}] ×${i.qty} ${i.amount}${i.currency}`).join('；'),
+        JSON.stringify(o.subtotals || {}),
+        o.total_cny != null ? Number(o.total_cny).toFixed(2) : '',
+        o.order_text || '',
+      ]);
+      const csv = [head, ...rows].map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const range = (dateFrom || dateTo)
+        ? (dateFrom || 'earliest') + '_' + (dateTo || 'latest')
+        : new Date().toISOString().slice(0, 10);
+      a.download = 'orders-' + range + '.csv';
+      a.click();
+    }
+
+    /* ── 事件 ── */
+    $('#showPw').addEventListener('change', (e) => {
+      document.getElementById('password').type = e.target.checked ? 'text' : 'password';
+    });
+
+    $('#loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('#loginErr').textContent = '';
+      try {
+        await login($('#email').value.trim(), $('#password').value);
+        showList();
+      } catch (err) {
+        $('#loginErr').textContent = err.message;
+      }
+    });
+
+    /* ───────── 角色 ───────── */
+    let myRole = '';          // 'admin' | 'viewer'
+
+    /** 登录后查自己在 staff 表里的角色 */
+    async function loadMyRole() {
+      const email = (localStorage.getItem('brush-admin-email') || '').toLowerCase();
+      if (!email) { myRole = ''; return; }
+      try {
+        const rows = await api('/rest/v1/staff?select=role,active,name&email=eq.' + encodeURIComponent(email));
+        const me = Array.isArray(rows) ? rows[0] : null;
+        myRole = me && me.active ? me.role : '';
+        if (me && me.name) $('#whoami').textContent = '登录账号：' + email + '（' + me.name + '）';
+      } catch (e) {
+        myRole = '';
+      }
+    }
+
+    function applyRoleUI() {
+      const isAdmin = myRole === 'admin';
+      $('#roleBadge').textContent = isAdmin ? '系统管理员' : (myRole ? '只读人员' : '无权限');
+      $('#roleBadge').classList.toggle('admin', isAdmin);
+      $('#tabStaff').hidden = !isAdmin;
+      // 只读人员：状态列不可改
+      document.body.classList.toggle('readonly', !isAdmin);
+    }
+
+    /* ───────── 主标签切换 ───────── */
+    function switchView(name) {
+      document.querySelectorAll('.mtab').forEach((b) => {
+        const on = b.dataset.view === name;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      $('#viewOrders').hidden = name !== 'orders';
+      $('#viewStaff').hidden = name !== 'staff';
+      if (name === 'staff') loadStaff().catch((e) => alert('加载人员失败：' + e.message));
+    }
+
+    document.querySelector('.maintabs').addEventListener('click', (ev) => {
+      const b = ev.target.closest('.mtab');
+      if (!b) return;
+      switchView(b.dataset.view);
+    });
+
+    async function showList() {
+      $('#loginView').classList.add('hidden');
+      $('#listView').classList.remove('hidden');
+      $('#whoami').textContent = '登录账号：' + (localStorage.getItem('brush-admin-email') || '');
+      await loadMyRole();
+      applyRoleUI();
+      switchView('orders');
+      try {
+        await loadOrders();
+      } catch (err) {
+        if (/登录已过期/.test(err.message)) return;   // 已经退回登录页
+        $('#stat').textContent = '加载失败：' + err.message;
+      }
+    }
+
+    /* ───────── 人员管理 ───────── */
+    async function loadStaff() {
+      const rows = await api('/rest/v1/staff?select=*&order=created_at.asc');
+      const list = Array.isArray(rows) ? rows : [];
+      const myEmail = (localStorage.getItem('brush-admin-email') || '').toLowerCase();
+      $('#staffEmpty').classList.toggle('hidden', list.length > 1);
+      $('#staffRows').innerHTML = list.map((s) => {
+        const self = s.email.toLowerCase() === myEmail;
+        return `<tr data-email="${esc(s.email)}">
+          <td data-label="邮箱">${esc(s.email)}${self ? '<span class="self-tag">（我）</span>' : ''}</td>
+          <td data-label="姓名">${esc(s.name || '')}</td>
+          <td data-label="角色">
+            ${self
+              ? '<span class="pill ' + (s.role === 'admin' ? 'paid' : 'cancelled') + '">' + (s.role === 'admin' ? '系统管理员' : '只读') + '</span>'
+              : `<select class="role-sel" data-email="${esc(s.email)}">
+                   <option value="viewer" ${s.role === 'viewer' ? 'selected' : ''}>只读</option>
+                   <option value="admin" ${s.role === 'admin' ? 'selected' : ''}>系统管理员</option>
+                 </select>`}
+          </td>
+          <td data-label="状态"><span class="pill ${s.active ? 'done' : 'cancelled'}">${s.active ? '启用' : '已停用'}</span></td>
+          <td data-label="创建时间">${fmtTime(s.created_at)}</td>
+          <td data-label="操作">
+            ${self ? '<span class="self-tag">—</span>'
+              : `<button type="button" class="op toggle-active" data-email="${esc(s.email)}" data-active="${s.active}">${s.active ? '停用' : '启用'}</button>
+                 <button type="button" class="op del" data-email="${esc(s.email)}">删除</button>`}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    $('#sfSubmit').addEventListener('click', async () => {
+      const email = $('#sfEmail').value.trim();
+      const name = $('#sfName').value.trim();
+      const password = $('#sfPassword').value;
+      const role = $('#sfRole').value;
+      const msg = $('#sfMsg');
+      msg.className = 'sf-msg';
+      if (!email || !password) { msg.textContent = '邮箱和密码必填'; msg.className = 'sf-msg err'; return; }
+      msg.textContent = '提交中…';
+      try {
+        const rows = await api('/rest/v1/rpc/create_staff', {
+          method: 'POST',
+          body: JSON.stringify({ p_email: email, p_password: password, p_name: name, p_role: role }),
+        });
+        const r = Array.isArray(rows) ? rows[0] : rows;
+        if (r && r.ok === false) { msg.textContent = r.error || '新增失败'; msg.className = 'sf-msg err'; return; }
+        msg.textContent = '✅ 已新增：' + email + '（' + (role === 'admin' ? '系统管理员' : '只读') + '）';
+        msg.className = 'sf-msg ok';
+        $('#sfEmail').value = ''; $('#sfName').value = ''; $('#sfPassword').value = '';
+        await loadStaff();
+      } catch (e) {
+        msg.textContent = '新增失败：' + e.message;
+        msg.className = 'sf-msg err';
+      }
+    });
+
+    $('#staffRows').addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('button.op');
+      if (!btn) return;
+      const email = btn.dataset.email;
+      try {
+        if (btn.classList.contains('toggle-active')) {
+          const next = btn.dataset.active !== 'true';
+          await api('/rest/v1/staff?email=eq.' + encodeURIComponent(email), {
+            method: 'PATCH', headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify({ active: next }),
+          });
+        } else if (btn.classList.contains('del')) {
+          if (!confirm('确定删除 ' + email + '？删除后该账号将无法登录后台（登录账号本身不删）。')) return;
+          await api('/rest/v1/staff?email=eq.' + encodeURIComponent(email), { method: 'DELETE' });
+        }
+        await loadStaff();
+      } catch (e) {
+        alert('操作失败：' + e.message);
+      }
+    });
+
+    $('#staffRows').addEventListener('change', async (ev) => {
+      const sel = ev.target.closest('select.role-sel');
+      if (!sel) return;
+      try {
+        await api('/rest/v1/staff?email=eq.' + encodeURIComponent(sel.dataset.email), {
+          method: 'PATCH', headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify({ role: sel.value }),
+        });
+        await loadStaff();
+      } catch (e) {
+        alert('修改角色失败：' + e.message);
+        await loadStaff();
+      }
+    });
+
+    $('#fromDate').addEventListener('change', (e) => {
+      dateFrom = e.target.value;
+      loadOrders().catch((err) => alert('查询失败：' + err.message));
+    });
+    $('#toDate').addEventListener('change', (e) => {
+      dateTo = e.target.value;
+      loadOrders().catch((err) => alert('查询失败：' + err.message));
+    });
+    $('#clearDate').addEventListener('click', () => {
+      dateFrom = ''; dateTo = '';
+      $('#fromDate').value = ''; $('#toDate').value = '';
+      loadOrders().catch((err) => alert('查询失败：' + err.message));
+    });
+
+    $('#statusTabs').addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.stab');
+      if (!btn) return;
+      activeStatus = btn.dataset.status || '';
+      page = 1;                       // 切栏回到第一页
+      render();
+    });
+    $('#pageSize').addEventListener('change', (ev) => {
+      pageSize = Number(ev.target.value) || 20;
+      page = 1;
+      render();
+    });
+    $('#prevPage').addEventListener('click', () => { if (page > 1) { page--; render(); } });
+    $('#nextPage').addEventListener('click', () => { page++; render(); });
+    $('#q').addEventListener('input', () => { page = 1; render(); });
+    $('#refresh').addEventListener('click', () => loadOrders().catch((e) => alert('刷新失败：' + e.message)));
+    $('#export').addEventListener('click', exportXlsx);
+    $('#exportCsv').addEventListener('click', exportCsv);
+    $('#logout').addEventListener('click', () => {
+      token = '';
+      localStorage.removeItem(TOKEN_KEY);
+      location.reload();
+    });
+    $('#rows').addEventListener('change', (e) => {
+      const sel = e.target.closest('select.status');
+      if (!sel) return;
+      updateStatus(sel.dataset.no, sel.value).catch((err) => alert('修改失败：' + err.message));
+    });
+
+    /*
+     * 有缓存令牌就直接进列表；但没有 refresh_token 时必然会在 1 小时后失效，
+     * 所以那种情况直接要求重新登录，避免出现「进去但什么都看不到」。
+     */
+    if (token && refreshToken) showList();
+    else if (token) forceLogin('');
+  </script>
+
+  <div class="pmask" id="pmask" hidden>
+    <div class="pbox" role="dialog" aria-modal="true" aria-label="商品详情">
+      <button type="button" class="pclose" id="pclose" aria-label="关闭">&times;</button>
+      <div id="pbody"><div class="ploading">加载商品详情…</div></div>
+    </div>
+  </div>
+
+  <script>
+    /* ══ 商品详情弹窗 ══
+     * 后台没有商品数据，点开时按需加载对应品牌的数据文件
+     * （如 hakuho.html → ./catalog-data.js），找到 handle 对应的商品再渲染。
+     * 数据文件是 window.PRODUCTS = [...] 这种赋值，加载后会覆盖全局变量，
+     * 所以每次加载前把它清掉，避免串到别的品牌。
+     */
+    const BRAND_DATA = {
+      hakuho: './catalog-data.js',
+      koyudo: './koyudo-data.js',
+      takeda: './takeda-data.js',
+      n8: './n8-data.js',
+      eihodo: './eihodo-data.js',
+      chikuhodo: './chikuhodo-data.js',
+      beautylish: './beautylish-data.js',
+    };
+    /* page → 该品牌的商品数组（不能只记"加载过"，因为全局 PRODUCTS 只能存一个） */
+    const dataCache = new Map();
+
+    function loadBrandData(page) {
+      if (dataCache.has(page)) return Promise.resolve(dataCache.get(page));
+      const src = BRAND_DATA[page];
+      if (!src) return Promise.reject(new Error('未知品牌：' + page));
+      return new Promise((resolve, reject) => {
+        window.PRODUCTS = undefined;      // 清掉上一家的数据
+        const s = document.createElement('script');
+        s.src = src + '?t=' + Date.now();
+        s.onload = () => {
+          const arr = window.PRODUCTS;
+          if (!Array.isArray(arr)) { reject(new Error('数据文件里没有 PRODUCTS')); return; }
+          dataCache.set(page, arr);       // 留住这一份，别被下一个品牌覆盖
+          resolve(arr);
+        };
+        s.onerror = () => reject(new Error('加载 ' + src + ' 失败'));
+        document.head.appendChild(s);
+      });
+    }
+
+    const esc2 = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+    async function showProduct(page, handle) {
+      const mask = document.getElementById('pmask');
+      const body = document.getElementById('pbody');
+      mask.hidden = false;
+      body.innerHTML = '<div class="ploading">加载商品详情…</div>';
+      try {
+        const list = await loadBrandData(page);
+        const p = list.find((x) => String(x.handle) === String(handle));
+        if (!p) { body.innerHTML = '<div class="ploading">没找到这个商品（可能已下架）</div>'; return; }
+
+        const imgs = (p.images && p.images.length ? p.images : [p.image]).filter(Boolean);
+        const dims = p.dimensions || {};
+        const dimVals = Object.keys(dims).reduce((a, k) => a.concat(Array.isArray(dims[k]) ? dims[k] : [dims[k]]), []).filter(Boolean);
+        const l1 = p.level1 || p.type || '';
+        const detailHtml = p.detailHtml || (p.detail ? '<p>' + esc2(p.detail).replace(/\n/g, '</p><p>') + '</p>' : '<p>' + esc2(p.desc || '暂无详情') + '</p>');
+
+        body.innerHTML = `<div class="pgrid">
+          <div class="pgallery">${imgs.map((s) => '<img src="' + esc2(s) + '" alt="" />').join('')}</div>
+          <div class="pinfo">
+            ${p.brand ? '<p class="pmeta">' + esc2(p.brand) + '</p>' : ''}
+            <h3>${esc2(p.title)}</h3>
+            <p class="pcat">${esc2(l1)}${dimVals.length ? ' › ' + esc2(dimVals.slice(0, 3).join(' · ')) : ''}</p>
+            <p class="pprice">${esc2(p.price)}</p>
+            ${p.variantNote ? '<p class="pmeta">' + esc2(p.variantNote) + '</p>' : ''}
+            <div class="pdesc">${detailHtml}</div>
+            <p class="pmeta" style="margin-top:14px">来源页：${esc2(page)}　handle：${esc2(handle)}</p>
+          </div>
+        </div>`;
+      } catch (err) {
+        body.innerHTML = '<div class="ploading">' + esc2(err.message) + '</div>';
+      }
+    }
+
+    document.getElementById('rows').addEventListener('click', (ev) => {
+      const a = ev.target.closest('a.item-link');
+      if (!a) return;
+      ev.preventDefault();
+      showProduct(a.dataset.page, a.dataset.handle);
+    });
+    document.getElementById('pclose').addEventListener('click', () => { document.getElementById('pmask').hidden = true; });
+    document.getElementById('pmask').addEventListener('click', (ev) => {
+      if (ev.target.id === 'pmask') document.getElementById('pmask').hidden = true;
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') document.getElementById('pmask').hidden = true;
+    });
+  </script>
+</body>
+</html>

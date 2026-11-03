@@ -25,7 +25,10 @@ for (const f of FILES) {
   let t = fs.readFileSync(f, 'utf8');
   t = t.replace(/(style\.css\?v=)\d+/, '$1' + VER)
        .replace(/(catalog\.js\?v=)\d+/, '$1' + VER)
-       .replace(/(-data\.js\?v=)\d+/, '$1' + VER);
+       .replace(/(-data\.js\?v=)\d+/, '$1' + VER)
+       // 购物车相关的两个脚本也要跟着走，否则改了 cart.js 浏览器还用缓存
+       .replace(/(cart\.js\?v=)\d+/, '$1' + VER)
+       .replace(/(site-config\.js\?v=)\d+/, '$1' + VER);
   fs.writeFileSync(f, t, 'utf8');
   const refs = [...t.matchAll(/(?:href|src)="\.\/([^"]+)"/g)].map((x) => x[1]).filter((r) => /\.(css|js)$|\?v=/.test(r));
   console.log('  ' + f.padEnd(18) + JSON.stringify(refs));

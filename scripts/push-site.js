@@ -107,6 +107,8 @@ function collectLocalFiles() {
       const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
       if (ent.isDirectory()) {
         if (SKIP_DIR.has(ent.name)) continue;
+        // 备份目录（html-bak-20261027-102355 这类）不发布
+        if (/bak/i.test(ent.name)) continue;
         walk(abs);
       } else {
         // 下划线开头的是临时探针脚本，不随站点发布
@@ -137,8 +139,10 @@ function collectLocalFiles() {
 
   const isBackup = (f) => {
     const base = f.split('/').pop();
-    return /\.bak$/i.test(base) || /\.bak-/i.test(base) || /\.bak\./i.test(base)
-      || /\.log$/i.test(base) || /\.tmp$/i.test(base);
+    // 注意 .bak2 / .bak6 这种带序号的也要拦住
+    // （之前只匹配 .bak / .bak- / .bak.，导致 data/admin.html.bak2..6 被推到线上）
+    return /\.bak\d*$/i.test(base) || /\.bak-/i.test(base) || /\.bak\./i.test(base)
+      || /\.log$/i.test(base) || /\.tmp$/i.test(base) || /\.orig$/i.test(base);
   };
   const backups = out.filter((f) => !ignored.has(f) && isBackup(f)).length;
   if (backups) console.log('  备份/日志文件排除: ' + backups + ' 个');

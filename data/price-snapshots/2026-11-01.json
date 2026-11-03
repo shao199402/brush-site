@@ -1,0 +1,454 @@
+{
+ "generatedAt": "2026-10-31T16:00:01.964Z",
+ "warnings": [
+  "竹田：4 件取价失败（多为站点响应超时；这类商品本次未参与价格对比，不代表价格没变）",
+  "永丰堂：420 件取价失败（多为站点响应超时；这类商品本次未参与价格对比，不代表价格没变）",
+  "竹宝堂：1 件取价失败（多为站点响应超时；这类商品本次未参与价格对比，不代表价格没变）"
+ ],
+ "brands": [
+  {
+   "key": "hakuho",
+   "label": "白凤堂",
+   "currency": "JPY",
+   "localCount": 1071,
+   "onlineCount": 1072,
+   "matchedCount": 1069,
+   "noOnlinePrice": 2,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [
+    {
+     "slug": "hb8078",
+     "raw": "7,590 日元（含税）",
+     "yen": 7590,
+     "currency": "JPY",
+     "title": "2027手書き年賀状セット"
+    },
+    {
+     "slug": "hb8079",
+     "raw": "18,150 日元（含税）",
+     "yen": 18150,
+     "currency": "JPY",
+     "title": "2027書初めセット"
+    },
+    {
+     "slug": "hb8075",
+     "raw": "8,800 日元（含税）",
+     "yen": 8800,
+     "currency": "JPY",
+     "title": "2026holiday「八丁とんがり筆」"
+    }
+   ],
+   "goneReappeared": 0
+  },
+  {
+   "key": "koyudo",
+   "label": "晃佑堂",
+   "currency": "JPY",
+   "localCount": 278,
+   "onlineCount": 278,
+   "matchedCount": 278,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [
+    {
+     "handle": "koyudo-000000000619",
+     "title": "JAPAN BLUE 熊野笔 \"KACHIIRO\" 五角笔",
+     "oldRaw": "1,760 日元（含税）",
+     "newRaw": "4,400 日元（含税）",
+     "oldNum": 1760,
+     "newNum": 4400,
+     "delta": 2640,
+     "pct": 150,
+     "direction": "up"
+    },
+    {
+     "handle": "koyudo-000000000621",
+     "title": "JAPAN BLUE 熊野笔 \"KACHIIRO\" 大笔",
+     "oldRaw": "2,750 日元（含税）",
+     "newRaw": "5,500 日元（含税）",
+     "oldNum": 2750,
+     "newNum": 5500,
+     "delta": 2750,
+     "pct": 100,
+     "direction": "up"
+    },
+    {
+     "handle": "koyudo-000000000620",
+     "title": "JAPAN BLUE 熊野笔 \"KACHIIRO\" 小笔",
+     "oldRaw": "1,760 日元（含税）",
+     "newRaw": "3,300 日元（含税）",
+     "oldNum": 1760,
+     "newNum": 3300,
+     "delta": 1540,
+     "pct": 87.5,
+     "direction": "up"
+    },
+    {
+     "handle": "koyudo-000000000622",
+     "title": "JAPAN BLUE 熊野笔 \"KACHIIRO\" 化妆刷3支套装",
+     "oldRaw": "11,000 日元（含税）",
+     "newRaw": "19,800 日元（含税）",
+     "oldNum": 11000,
+     "newNum": 19800,
+     "delta": 8800,
+     "pct": 80,
+     "direction": "up"
+    }
+   ],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "takeda",
+   "label": "竹田",
+   "currency": "JPY",
+   "localCount": 370,
+   "onlineCount": 366,
+   "matchedCount": 366,
+   "noOnlinePrice": 4,
+   "rangeSkipped": 0,
+   "fetchFailed": 4,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "n8",
+   "label": "熊永堂",
+   "currency": "JPY",
+   "localCount": 165,
+   "onlineCount": 165,
+   "matchedCount": 165,
+   "noOnlinePrice": 0,
+   "rangeSkipped": 0,
+   "fetchFailed": 0,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "eihodo",
+   "label": "永丰堂",
+   "currency": "JPY",
+   "localCount": 420,
+   "onlineCount": 0,
+   "matchedCount": 0,
+   "noOnlinePrice": 420,
+   "rangeSkipped": 0,
+   "fetchFailed": 420,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "chikuhodo",
+   "label": "竹宝堂",
+   "currency": "JPY",
+   "localCount": 316,
+   "onlineCount": 315,
+   "matchedCount": 315,
+   "noOnlinePrice": 1,
+   "rangeSkipped": 0,
+   "fetchFailed": 1,
+   "changes": [],
+   "added": [],
+   "goneReappeared": 0,
+   "soldOutCount": 0
+  },
+  {
+   "key": "beautylish",
+   "label": "Beautylish",
+   "currency": "CNY",
+   "localCount": 3044,
+   "onlineCount": 3099,
+   "matchedCount": 2743,
+   "noOnlinePrice": 27,
+   "rangeSkipped": 274,
+   "fetchFailed": 0,
+   "changes": [
+    {
+     "handle": "beautylish-mob-beauty-peptide-drench-cushion-lip-gloss",
+     "title": "MOB Beauty Peptide Drench Cushion Lip Gloss Riff",
+     "oldRaw": "USD24",
+     "newRaw": "CN¥215",
+     "oldNum": 24,
+     "newNum": 215,
+     "delta": 191,
+     "pct": 795.8333333333333,
+     "direction": "up"
+    },
+    {
+     "handle": "beautylish-wayne-goss-brush-23-spoolie-brush",
+     "title": "Wayne Goss Brush 23 Spoolie Brush",
+     "oldRaw": "CN¥63",
+     "newRaw": "CN¥90",
+     "oldNum": 63,
+     "newNum": 90,
+     "delta": 27,
+     "pct": 42.857142857142854,
+     "direction": "up"
+    },
+    {
+     "handle": "beautylish-wayne-goss-brush-22-dual-ended-brow-brush",
+     "title": "Wayne Goss Brush 22 Dual Ended Brow Brush",
+     "oldRaw": "CN¥80.5",
+     "newRaw": "CN¥115",
+     "oldNum": 80.5,
+     "newNum": 115,
+     "delta": 34.5,
+     "pct": 42.857142857142854,
+     "direction": "up"
+    },
+    {
+     "handle": "beautylish-sonia-g-worker-pro",
+     "title": "Sonia G. Worker Pro",
+     "oldRaw": "CN¥246",
+     "newRaw": "CN¥230",
+     "oldNum": 246,
+     "newNum": 230,
+     "delta": -16,
+     "pct": -6.504065040650407,
+     "direction": "down"
+    },
+    {
+     "handle": "beautylish-sonia-g-pro-eye-set",
+     "title": "Sonia G. Pro Eye Set",
+     "oldRaw": "CN¥1268",
+     "newRaw": "CN¥1252",
+     "oldNum": 1268,
+     "newNum": 1252,
+     "delta": -16,
+     "pct": -1.2618296529968454,
+     "direction": "down"
+    }
+   ],
+   "added": [
+    {
+     "slug": "sonia-g-superstar-detail-two",
+     "raw": "CN¥680",
+     "cny": 680,
+     "currency": "CNY",
+     "cardText": "SONIA G. Superstar Detail Two CN¥680"
+    },
+    {
+     "slug": "sonia-g-mini-essentials-blush-and-sculpt",
+     "raw": "CN¥532",
+     "cny": 532,
+     "currency": "CNY",
+     "cardText": "SONIA G. Mini Essentials Blush & Sculpt CN¥532"
+    },
+    {
+     "slug": "sonia-g-mini-essentials-special-edition-no-3-duo",
+     "raw": "CN¥1272",
+     "cny": 1272,
+     "currency": "CNY",
+     "cardText": "SONIA G. Mini Essentials Special Edition No. 3 Duo CN¥1272"
+    },
+    {
+     "slug": "sonia-g-mini-essentials-arched-buffer",
+     "raw": "CN¥740",
+     "cny": 740,
+     "currency": "CNY",
+     "cardText": "SONIA G. Mini Essentials Arched Buffer CN¥740"
+    },
+    {
+     "slug": "danessa-myricks-beauty-gloss-on-lock-kit",
+     "raw": "CN¥220",
+     "cny": 220,
+     "currency": "CNY",
+     "cardText": "DANESSA MYRICKS BEAUTY Gloss on Lock Kit CN¥220"
+    },
+    {
+     "slug": "sonia-g-smudger-one",
+     "raw": "CN¥296",
+     "cny": 296,
+     "currency": "CNY",
+     "cardText": "Returning Soon SONIA G. Smudger One CN¥296"
+    },
+    {
+     "slug": "by-terry-brightening-cc-serum-2-nude-glow",
+     "raw": "CN¥670",
+     "cny": 670,
+     "currency": "CNY",
+     "cardText": "BY TERRY Brightening CC Serum 2 Nude Glow CN¥670"
+    },
+    {
+     "slug": "by-terry-brightening-cc-serum-3-apricot-light",
+     "raw": "CN¥670",
+     "cny": 670,
+     "currency": "CNY",
+     "cardText": "BY TERRY Brightening CC Serum 3 Apricot Light CN¥670"
+    },
+    {
+     "slug": "allies-of-skin-founders-essence-56-ellagic-pad-light-reflecting-fluid",
+     "raw": "CN¥820",
+     "cny": 820,
+     "currency": "CNY",
+     "cardText": "ALLIES OF SKIN Founder's Essence 56 Ellagic & P.A.D. Light Reflecting Fluid CN¥820"
+    },
+    {
+     "slug": "le-prunier-plum-helix-c-serum",
+     "raw": "CN¥1000",
+     "cny": 1000,
+     "currency": "CNY",
+     "cardText": "LE PRUNIER Plum Helix™ C Serum CN¥1000"
+    },
+    {
+     "slug": "frasier-sterling-weiner-dog-claw-clip-set",
+     "raw": "CN¥280",
+     "cny": 280,
+     "currency": "CNY",
+     "cardText": "FRASIER STERLING Weiner Dog Claw Clip Set CN¥280"
+    },
+    {
+     "slug": "rco-big-shot-thickening-collection",
+     "raw": "CN¥578",
+     "cny": 578,
+     "currency": "CNY",
+     "cardText": "R+CO Big Shot Thickening Collection CN¥578"
+    },
+    {
+     "slug": "rco-im-perfect-essentials-collection",
+     "raw": "CN¥578",
+     "cny": 578,
+     "currency": "CNY",
+     "cardText": "R+CO I'm Perfect Essentials Collection CN¥578"
+    },
+    {
+     "slug": "rco-lost-at-sea-hydration-collection",
+     "raw": "CN¥296",
+     "cny": 296,
+     "currency": "CNY",
+     "cardText": "R+CO Lost At Sea Hydration Collection CN¥296"
+    },
+    {
+     "slug": "frasier-sterling-meet-me-in-new-york-claw-clip-set-of-2",
+     "raw": "CN¥280",
+     "cny": 280,
+     "currency": "CNY",
+     "cardText": "FRASIER STERLING Meet Me In New York Claw Clip Set CN¥280"
+    },
+    {
+     "slug": "grown-alchemist-hand-care-set-chrome-edition",
+     "raw": "CN¥815",
+     "cny": 815,
+     "currency": "CNY",
+     "cardText": "GROWN ALCHEMIST Hand Care Set: Chrome Edition CN¥815"
+    },
+    {
+     "slug": "frasier-sterling-bandana-claw-clip-set",
+     "raw": "CN¥355",
+     "cny": 355,
+     "currency": "CNY",
+     "cardText": "FRASIER STERLING Bandana Claw Clip Set CN¥355"
+    },
+    {
+     "slug": "frasier-sterling-book-lover-claw-clip-set",
+     "raw": "CN¥280",
+     "cny": 280,
+     "currency": "CNY",
+     "cardText": "FRASIER STERLING Book Lover Claw Clip Set CN¥280"
+    },
+    {
+     "slug": "frasier-sterling-afternoon-tea-claw-clip-set",
+     "raw": "CN¥280",
+     "cny": 280,
+     "currency": "CNY",
+     "cardText": "FRASIER STERLING Afternoon Tea Claw Clip Set CN¥280"
+    },
+    {
+     "slug": "allies-of-skin-a-founders-collaboration-the-resilient-and-firm-set",
+     "raw": "CN¥1568",
+     "cny": 1568,
+     "currency": "CNY",
+     "cardText": "ALLIES OF SKIN A Founders Collaboration: The Resilient & Firm Set CN¥1568"
+    },
+    {
+     "slug": "anna-sui-makeup-sponge-1",
+     "raw": "CN¥38",
+     "cny": 38,
+     "currency": "CNY",
+     "cardText": "ANNA SUI Makeup Sponge CN¥38"
+    },
+    {
+     "slug": "dr-barbara-sturm-advent-calendar",
+     "raw": "CN¥4138",
+     "cny": 4138,
+     "currency": "CNY",
+     "cardText": "DR. BARBARA STURM Advent Calendar CN¥4138"
+    },
+    {
+     "slug": "frasier-sterling-magic-mischief-claw-clip-set",
+     "raw": "CN¥280",
+     "cny": 280,
+     "currency": "CNY",
+     "cardText": "Returning Soon FRASIER STERLING Magic & Mischief Claw Clip Set CN¥280"
+    },
+    {
+     "slug": "frasier-sterling-spooky-cat-claw-clip-set",
+     "raw": "CN¥280",
+     "cny": 280,
+     "currency": "CNY",
+     "cardText": "Returning Soon FRASIER STERLING Spooky Cat Claw Clip Set CN¥280"
+    },
+    {
+     "slug": "dr-barbara-sturm-hyaluronic-home-away-duo",
+     "raw": "CN¥2400",
+     "cny": 2400,
+     "currency": "CNY",
+     "cardText": "DR. BARBARA STURM Hyaluronic Home & Away Duo CN¥2400"
+    },
+    {
+     "slug": "frasier-sterling-cafe-claw-clip-set",
+     "raw": "CN¥280",
+     "cny": 280,
+     "currency": "CNY",
+     "cardText": "FRASIER STERLING Cafe Claw Clip Set CN¥280"
+    },
+    {
+     "slug": "susanne-kaufmann-foot-cream-warming",
+     "raw": "CN¥370",
+     "cny": 370,
+     "currency": "CNY",
+     "cardText": "SUSANNE KAUFMANN Foot Cream Warming CN¥370"
+    },
+    {
+     "slug": "kevyn-aucoin-unforgettable-lip-definer",
+     "raw": "CN¥210",
+     "cny": 210,
+     "currency": "CNY",
+     "cardText": "Returning Soon KEVYN AUCOIN Unforgettable Lip Definer CN¥210"
+    },
+    {
+     "slug": "kevyn-aucoin-unforgettable-lipstick-cream",
+     "raw": "CN¥286",
+     "cny": 286,
+     "currency": "CNY",
+     "cardText": "Returning Soon KEVYN AUCOIN Unforgettable Lipstick Cream CN¥286"
+    },
+    {
+     "slug": "frasier-sterling-lover-claw-clip-set",
+     "raw": "CN¥355",
+     "cny": 355,
+     "currency": "CNY",
+     "cardText": "FRASIER STERLING Lover Claw Clip Set CN¥355"
+    },
+    {
+     "slug": "susanne-kaufmann-for-the-senses-body-ritual",
+     "raw": "CN¥480",
+     "cny": 480,
+     "currency": "CNY",
+     "cardText": "Returning Soon SUSANNE KAUFMANN For The Senses Body Ritual CN¥480"
+    }
+   ],
+   "goneReappeared": 51
+  }
+ ]
+}

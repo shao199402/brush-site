@@ -6,7 +6,7 @@
   <title>竹宝堂商品 | 笔刷商品目录</title>
   <meta name="description" content="竹宝堂商品静态目录展示页面" />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./style.css?v=20261049" />
+  <link rel="stylesheet" href="./style.css?v=20261068" />
 </head>
 <body>
   <header class="site-header">
@@ -18,6 +18,7 @@
       <a href="./index.html">首页</a>
       <a href="#catalog">全部商品</a>
     </nav>
+      <button type="button" class="js-cart-open cart-entry" aria-label="打开购物车">购物车<span class="cart-badge" id="cartBadge" hidden>0</span></button>
   </header>
 
   <main id="top">
@@ -66,7 +67,19 @@
     </div>
     <p class="credit">商品文字、图片与价格来自公开商品页面，仅用于页面参考展示。</p>
   </footer>
-  <script src="./chikuhodo-data.js?v=20261049"></script>
-  <script src="./catalog.js?v=20261049"></script>
+  <script src="./chikuhodo-data.js?v=20261068"></script>
+  <script src="./site-config.js?v=20261068"></script>
+  <script src="./cart.js?v=20261068"></script>
+  <script src="./catalog.js?v=20261068"></script>
+
+<div class="cart-overlay" id="cartOverlay" hidden></div>
+<aside class="cart-drawer" id="cartDrawer" hidden aria-label="购物车" aria-live="polite">
+  <header class="cart-head">
+    <h2>购物车 <span class="cart-head-count" id="cartDrawerCount">0</span></h2>
+    <button type="button" class="cart-close" id="cartClose" aria-label="关闭购物车">&times;</button>
+  </header>
+  <div class="cart-body" id="cartBody"></div>
+  <footer class="cart-foot" id="cartFoot"></footer>
+</aside>
 </body>
 </html>

@@ -45,3 +45,5 @@ data/_bl-detail*.log
 
 # 备份文件
 data/*.bak
+# Local mail config (contains SMTP auth code, never commit)
+data/mail-config.json

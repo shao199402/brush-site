@@ -3,43 +3,55 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>笔刷商品目录 | 首页</title>
-  <meta name="description" content="多品牌笔刷商品静态目录首页" />
+  <title>大家的喜刷刷 · 笔刷商品目录</title>
+  <meta name="description" content="七家日本手工笔刷品牌目录：白凤堂、晃佑堂、竹田、熊永堂、永丰堂、竹宝堂与 Beautylish 精选，共 5600+ 商品。" />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./style.css?v=20261014" />
+  <link rel="stylesheet" href="./style.css?v=20261067" />
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="#top" aria-label="返回首页">
-      <span class="brand-mark">笔刷商品目录</span>
-      <span class="brand-sub">Brush Catalog Showcase</span>
+      <span class="brand-mark">大家的喜刷刷</span>
+      <span class="brand-sub">Brush Catalog</span>
     </a>
     <nav class="nav" aria-label="主导航">
-      <a href="#links">顶部链接</a>
-      <a href="#modules">产品模块</a>
-      <a href="#ads">广告位</a>
+      <a href="#modules">品牌目录</a>
+      <a href="#contact">联系我</a>
     </nav>
   </header>
 
   <main id="top">
-    <section class="top-links" id="links" aria-label="顶部链接区">
-      <div>
-        <span class="section-kicker">LINK AREA</span>
-        <h1>商品目录入口</h1>
+    <!-- 首屏：左侧品牌介绍，右侧主视觉海报 -->
+    <section class="hero" id="hero" aria-label="品牌介绍">
+      <div class="hero-copy">
+        <span class="section-kicker">JAPAN MADE BRUSH</span>
+        <h1>大家的喜刷刷</h1>
+        <p class="hero-lead">
+          七家日本手工笔刷品牌，五千六百余款商品。
+          从白凤堂的经典到竹田的职人工艺，按品牌分类浏览，价格统一折算人民币。
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#modules">进入品牌目录</a>
+          <a class="btn btn-ghost" href="#contact">加微信咨询</a>
+        </div>
+        <ul class="hero-facts">
+          <li><b>7</b><span>品牌</span></li>
+          <li><b>5,664</b><span>商品</span></li>
+        </ul>
       </div>
-      <div class="link-placeholder">
-        <p>顶部链接方式暂时为空。</p>
-        <p>后续可放置官网入口、联系方式、社群链接、店铺链接或常用导航。</p>
-      </div>
+      <figure class="hero-media">
+        <img src="./assets/home/hero-banner.jpg" alt="众人的手工笔刷围成一圈，中间是「大家的喜刷刷」字样" />
+      </figure>
     </section>
 
+    <!-- 品牌模块 -->
     <section class="module-section" id="modules">
       <div class="module-heading">
         <div>
           <span class="section-kicker">PRODUCT MODULES</span>
-          <h2>产品模块</h2>
+          <h2>品牌目录</h2>
         </div>
-        <p>首页只作为产品模块入口，不直接展示具体商品。点击各模块进入对应品牌的独立商品页；后续可继续添加其他品牌或分类模块。</p>
+        <p>点击品牌进入各自的商品页。每页都支持搜索、按分类筛选、加入购物车，下单后由我这边联系确认。</p>
       </div>
 
       <div class="module-grid">
@@ -48,6 +60,7 @@
           <div class="module-body">
             <p class="catalog-type">HAKUHO-DO</p>
             <h3>白凤堂商品</h3>
+            <span class="module-count">1,071 件</span>
           </div>
         </a>
 
@@ -56,6 +69,7 @@
           <div class="module-body">
             <p class="catalog-type">KOYUDO</p>
             <h3>晃佑堂商品</h3>
+            <span class="module-count">278 件</span>
           </div>
         </a>
 
@@ -64,6 +78,7 @@
           <div class="module-body">
             <p class="catalog-type">TAKEDA</p>
             <h3>竹田商品</h3>
+            <span class="module-count">370 件</span>
           </div>
         </a>
 
@@ -72,6 +87,7 @@
           <div class="module-body">
             <p class="catalog-type">NUMBER EIGHT</p>
             <h3>熊永堂商品</h3>
+            <span class="module-count">165 件</span>
           </div>
         </a>
 
@@ -80,6 +96,7 @@
           <div class="module-body">
             <p class="catalog-type">EIHODO</p>
             <h3>永丰堂商品</h3>
+            <span class="module-count">420 件</span>
           </div>
         </a>
 
@@ -88,6 +105,7 @@
           <div class="module-body">
             <p class="catalog-type">CHIKUHODO</p>
             <h3>竹宝堂商品</h3>
+            <span class="module-count">316 件</span>
           </div>
         </a>
 
@@ -96,26 +114,39 @@
           <div class="module-body">
             <p class="catalog-type">BEAUTYLISH</p>
             <h3>Beautylish 商品</h3>
+            <span class="module-count">3,044 件</span>
           </div>
         </a>
       </div>
     </section>
 
-    <section class="ad-section" id="ads">
-      <div class="ad-card">
-        <span class="section-kicker">AD SPACE</span>
-        <h2>广告位</h2>
-        <p>底部广告位暂时保留。后续可放品牌推荐、活动图、联系方式、横幅广告或跳转入口。</p>
+    <!-- 联系：微信二维码 -->
+    <section class="contact" id="contact">
+      <div class="contact-card">
+        <figure class="contact-qr">
+          <img src="./assets/home/wechat-qr.jpg" alt="微信二维码：佳秀，北京大兴" />
+        </figure>
+        <div class="contact-copy">
+          <span class="section-kicker">CONTACT</span>
+          <h2>扫码加我微信</h2>
+          <p>商品咨询、现货确认、下单与售后都在微信里沟通。</p>
+          <ul class="contact-list">
+            <li>想确认某个型号是否有货</li>
+            <li>想按你的手法推荐刷型</li>
+            <li>已下单，想催一下进度</li>
+          </ul>
+          <p class="contact-hint">长按二维码识别添加；电脑上打开的话，用手机扫码即可。</p>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div>
-      <strong>笔刷商品目录首页</strong>
-      <p>纯前端静态首页 · 多产品模块入口 · 具体商品在独立页面展示</p>
+      <strong>大家的喜刷刷 · 笔刷商品目录</strong>
+      <p>纯前端静态站点 · 图片与商品数据取自各品牌官网公开信息</p>
     </div>
-    <p class="credit">当前白凤堂、晃佑堂、竹田、熊永堂、永丰堂、竹宝堂、Beautylish 模块已接入独立商品页。</p>
+    <p class="credit">白凤堂 · 晃佑堂 · 竹田 · 熊永堂 · 永丰堂 · 竹宝堂 · Beautylish</p>
   </footer>
 </body>
 </html>

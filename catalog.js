@@ -261,6 +261,25 @@ function card(product, index){
   const tagHtml = tags.map((t) => `<span class="card-tag">${escapeHtml(t)}</span>`).join('');
   const flag = product.type ? `<span class="card-flag">${escapeHtml(product.type)}</span>` : '';
 
+  /*
+   * 一二级分类：一级（level1，回退 type）› 二级（dimensions 里的第一个值）。
+   * 这一行比标签云更直观地说明「这东西属于哪一类」。
+   */
+  const l1 = level1Of(product);
+  const l2 = tags[0] || '';
+  const catLine = (l1 || l2)
+    ? `<p class="card-cat">${escapeHtml(l1)}${l2 && l2 !== l1 ? ' › ' + escapeHtml(l2) : ''}</p>`
+    : '';
+
+  /*
+   * 商品详情摘要：截到 60 字，CSS 再限制成 2 行。
+   * 优先用 desc（已翻译的简介），没有就用 detail 的前段。
+   */
+  const rawDesc = String(product.desc || product.detail || '').replace(/\s+/g, ' ').trim();
+  const descLine = rawDesc
+    ? `<p class="card-desc">${escapeHtml(rawDesc.slice(0, 60))}${rawDesc.length > 60 ? '…' : ''}</p>`
+    : '';
+
   return `<article class="catalog-card" data-index="${index}">
     <div class="card-media">
       <img loading="lazy" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" />
@@ -269,8 +288,11 @@ function card(product, index){
     <div class="card-info">
       ${brand}
       <h3 class="card-title">${escapeHtml(product.title)}</h3>
+      ${catLine}
+      ${descLine}
       <p class="card-price"><span class="cur">${escapeHtml(p.cur || '¥')}</span><strong>${escapeHtml(p.amount)}</strong><span class="tax">${escapeHtml(p.suffix)}</span></p>
       <div class="card-tags">${tagHtml}</div>
+      <button class="card-add js-add-cart" type="button" data-index="${index}" aria-label="把 ${escapeHtml(product.title)} 加入购物车">加入购物车</button>
     </div>
   </article>`;
 }
@@ -301,6 +323,7 @@ function openProduct(index){
       <p class="catalog-type">${escapeHtml(product.type)}</p>
       <h2>${escapeHtml(product.title)}</h2>
       <p class="catalog-price modal-price">${escapeHtml(product.price)}</p>
+      <button class="modal-add js-add-cart" type="button" data-index="${index}">加入购物车</button>
       ${metaLine}
       <div class="modal-detail">${product.detailHtml || escapeHtml(product.detail || product.desc || '暂无中文详情。').split('\n').map(line=>`<p>${line}</p>`).join('')}</div>
     </div>`;
@@ -344,7 +367,43 @@ if (els.dim) {
   });
 }
 els.more.addEventListener('click', () => render(false));
-els.grid.addEventListener('click', e => { const btn = e.target.closest('[data-index]'); if (btn) openProduct(Number(btn.dataset.index)); });
+/**
+ * 卡片点击：打开详情。
+ * 但「加入购物车」按钮也在卡片内（同样带 data-index），必须优先拦截，
+ * 否则点加购会连带弹出详情。
+ */
+els.grid.addEventListener('click', e => {
+  if (e.target.closest('.js-add-cart')) return;   // 交给下面的加购逻辑
+  const btn = e.target.closest('[data-index]');
+  if (btn) openProduct(Number(btn.dataset.index));
+});
+
+/* ── 加入购物车（卡片 + 详情弹窗共用一套逻辑）── */
+/** 页面标识取自文件名，用作购物车条目的命名空间，避免不同品牌 handle 撞车 */
+function pageId(){
+  const m = location.pathname.match(/([a-z0-9-]+)\.html?$/i);
+  return m ? m[1] : 'site';
+}
+document.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.js-add-cart');
+  if (!btn) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  const product = window.PRODUCTS[Number(btn.dataset.index)];
+  if (!product) return;
+  if (!window.Cart) { console.warn('cart.js 未加载'); return; }
+  const ok = window.Cart.add(product, pageId());
+
+  // 反馈：按钮短暂变成「已加入」
+  const original = btn.textContent;
+  btn.textContent = ok ? '已加入 ✓' : '暂无价格';
+  btn.classList.add('is-added');
+  setTimeout(() => {
+    btn.textContent = original;
+    btn.classList.remove('is-added');
+  }, 1200);
+}, true);   // 捕获阶段，抢在 grid 的冒泡处理之前
+
 els.modalClose.addEventListener('click', closeProduct);
 els.modal.addEventListener('click', e => { if (e.target === els.modal) closeProduct(); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && !els.modal.hasAttribute('hidden')) closeProduct(); });
@@ -389,3 +448,17 @@ function watchToolbarStuck(){
 watchToolbarStuck();
 
 renderTypes(); renderBrands(); renderDims(); render(true);
+
+/**
+ * 深链：?p=<handle> 直接打开该商品的详情弹窗。
+ * 后台订单里的商品链接就是靠这个跳回来的。
+ */
+(function openFromQuery() {
+  const handle = new URLSearchParams(location.search).get('p');
+  if (!handle) return;
+  const list = window.PRODUCTS || [];
+  const idx = list.findIndex((x) => String(x.handle) === handle);
+  if (idx < 0) return;
+  // 等首屏渲染完再弹，避免被随后的 render() 覆盖
+  setTimeout(() => openProduct(idx), 60);
+})();
